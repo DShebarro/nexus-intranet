@@ -12,10 +12,14 @@ date_default_timezone_set($appConfig['timezone']);
 $router  = new \App\Core\Router();
 $request = new \App\Core\Request();
 
-// =============================================
-// ROTAS — Páginas (HTML)
-// =============================================
+// Rotas das páginas
 $router->add('GET', '/',          'DashboardController@index');
 $router->add('GET', '/dashboard', 'DashboardController@index');
+$router->add('GET', '/tasks',     'TaskController@index');
+
+// Rotas da API
+$router->add('POST',   '/api/tasks',         'TaskController@store');
+$router->add('PATCH',  '/api/tasks/{id}/move', 'TaskController@move');
+$router->add('DELETE', '/api/tasks/{id}',    'TaskController@destroy');
 
 $router->dispatch($request);

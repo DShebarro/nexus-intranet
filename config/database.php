@@ -3,6 +3,6 @@ return [
     'host'    => 'localhost',
     'dbname'  => 'nexus_intranet',
     'user'    => 'root',
-    'pass'    => '',  // Altere para sua senha do MySQL
+    'pass'    => '',
     'charset' => 'utf8mb4',
 ];

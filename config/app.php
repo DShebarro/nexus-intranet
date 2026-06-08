@@ -2,7 +2,7 @@
 return [
     'name'     => 'Nexus Intranet',
     'version'  => '3.0',
-    'timezone' => 'America/Manaus',
+    'timezone' => 'America/Sao_Paulo',
     'debug'    => true,
-    'ai_key'   => '',  // Adicione sua chave da API Claude/Gemini depois
+    'ai_key'   => '',
 ];
