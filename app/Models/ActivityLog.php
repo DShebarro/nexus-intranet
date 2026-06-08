@@ -37,4 +37,9 @@ class ActivityLog extends BaseModel
         ");
         return (int) $stmt->fetchColumn();
     }
+
+    public function clearAll(): bool
+    {
+        return $this->db->exec("DELETE FROM activity_logs") !== false;
+    }
 }
