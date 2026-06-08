@@ -12,9 +12,10 @@ date_default_timezone_set($appConfig['timezone']);
 $router  = new \App\Core\Router();
 $request = new \App\Core\Request();
 
-// Rotas temporárias para teste
-$router->add('GET', '/', function() {
-    echo "Nexus Intranet - Funcionando! 🚀";
-});
+// =============================================
+// ROTAS — Páginas (HTML)
+// =============================================
+$router->add('GET', '/',          'DashboardController@index');
+$router->add('GET', '/dashboard', 'DashboardController@index');
 
 $router->dispatch($request);
