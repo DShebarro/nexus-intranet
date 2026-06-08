@@ -7,6 +7,23 @@
         </button>
     </div>
 
+    <!-- Filtros e Busca -->
+    <div class="flex flex-wrap gap-4 mb-6 bg-slate-900/50 p-4 rounded-2xl border border-slate-850">
+        <div class="flex-1 min-w-[200px]">
+            <input type="text" id="search-task" placeholder="Buscar tarefa por título ou descrição..." 
+                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+        </div>
+        <div class="w-48">
+            <select id="filter-priority" 
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                <option value="all">Todas as Prioridades</option>
+                <option value="alta">Alta</option>
+                <option value="media">Média</option>
+                <option value="baixa">Baixa</option>
+            </select>
+        </div>
+    </div>
+
     <div class="flex space-x-6 overflow-x-auto pb-4">
         <?php
         $cols = [
@@ -29,7 +46,13 @@
             </div>
             <div class="flex-1 p-4 space-y-3 kanban-col" data-status="<?= $key ?>">
                 <?php foreach ($columns[$key] as $task): ?>
-                <div class="task-card bg-slate-900 border border-slate-800 p-4 rounded-xl" data-id="<?= $task['id'] ?>">
+                <div class="task-card bg-slate-900 border border-slate-800 p-4 rounded-xl cursor-grab active:cursor-grabbing hover:border-slate-700 transition-colors" 
+                     data-id="<?= $task['id'] ?>"
+                     data-priority="<?= htmlspecialchars($task['priority']) ?>"
+                     data-title="<?= htmlspecialchars($task['title']) ?>"
+                     data-desc="<?= htmlspecialchars($task['description'] ?? '') ?>"
+                     data-date="<?= htmlspecialchars($task['due_date'] ?? '') ?>"
+                     draggable="true">
                     <h4 class="font-bold text-sm text-slate-200 mb-2"><?= htmlspecialchars($task['title']) ?></h4>
                     <p class="text-xs text-slate-400 mb-3"><?= htmlspecialchars($task['description'] ?? '') ?></p>
                     <div class="flex justify-between items-center text-xs">

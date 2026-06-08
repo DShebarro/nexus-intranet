@@ -24,13 +24,23 @@ class Task extends BaseModel
 
     public function update(int $id, array $data): bool
     {
+        $existing = $this->findById($id);
+        if (!$existing) return false;
+
         $stmt = $this->db->prepare("
             UPDATE tasks
             SET title=:title, description=:description,
                 priority=:priority, status=:status, due_date=:due_date
             WHERE id=:id
         ");
-        return $stmt->execute([...$data, 'id' => $id]);
+        return $stmt->execute([
+            'id'          => $id,
+            'title'       => $data['title'] ?? $existing['title'],
+            'description' => $data['description'] ?? $existing['description'],
+            'priority'    => $data['priority'] ?? $existing['priority'],
+            'status'      => $data['status'] ?? $existing['status'],
+            'due_date'    => $data['due_date'] ?? $existing['due_date'],
+        ]);
     }
 
     public function moveStatus(int $id, string $status): bool
