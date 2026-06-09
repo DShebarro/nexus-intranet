@@ -79,3 +79,53 @@ $(function () {
            .fail(() => showToast('Erro ao remover', 'error'));
     });
 });
+
+// Funções de filtro para sites
+function filterSites() {
+    const searchTerm = $('#search-sites').val().toLowerCase();
+    const categoryId = $('#filter-category-site').val();
+    const type = $('#filter-type-site').val();
+    const status = $('#filter-status-site').val();
+    
+    $('.site-card').each(function() {
+        const $card = $(this);
+        const name = $card.data('name').toLowerCase();
+        const description = $card.data('description').toLowerCase();
+        const cardCategory = $card.data('category');
+        const cardType = $card.data('type');
+        const cardStatus = $card.data('status');
+        
+        let show = true;
+        
+        if (searchTerm && !name.includes(searchTerm) && !description.includes(searchTerm)) {
+            show = false;
+        }
+        
+        if (categoryId && cardCategory != categoryId) {
+            show = false;
+        }
+        
+        if (type !== '' && cardType != type) {
+            show = false;
+        }
+        
+        if (status !== '' && cardStatus !== status) {
+            show = false;
+        }
+        
+        show ? $card.show() : $card.hide();
+    });
+}
+
+// Event listeners para filtros
+$('#search-sites').on('keyup', filterSites);
+$('#filter-category-site').on('change', function() {
+    const categoryId = $(this).val();
+    if (categoryId) {
+        window.location.href = `/sites?category_id=${categoryId}`;
+    } else {
+        window.location.href = '/sites';
+    }
+});
+$('#filter-type-site').on('change', filterSites);
+$('#filter-status-site').on('change', filterSites);

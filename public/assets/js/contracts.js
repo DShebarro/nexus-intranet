@@ -75,3 +75,56 @@ $(function () {
            .fail(() => showToast('Erro ao remover', 'error'));
     });
 });
+
+// Funções de filtro para contratos
+function filterContracts() {
+    const searchTerm = $('#search-contracts').val().toLowerCase();
+    const categoryId = $('#filter-category-contract').val();
+    const status = $('#filter-status-contract').val();
+    
+    let visibleCount = 0;
+    
+    $('.contract-row').each(function() {
+        const $row = $(this);
+        const code = $row.data('code').toLowerCase();
+        const partner = $row.data('partner').toLowerCase();
+        const object = $row.data('object').toLowerCase();
+        const rowStatus = $row.data('status');
+        const rowCategory = $row.data('category');
+        
+        let show = true;
+        
+        if (searchTerm && !code.includes(searchTerm) && !partner.includes(searchTerm) && !object.includes(searchTerm)) {
+            show = false;
+        }
+        
+        if (categoryId && rowCategory != categoryId) {
+            show = false;
+        }
+        
+        if (status && rowStatus !== status) {
+            show = false;
+        }
+        
+        if (show) {
+            $row.show();
+            visibleCount++;
+        } else {
+            $row.hide();
+        }
+    });
+    
+    $('#active-count').text(visibleCount);
+}
+
+// Event listeners para filtros
+$('#search-contracts').on('keyup', filterContracts);
+$('#filter-category-contract').on('change', function() {
+    const categoryId = $(this).val();
+    if (categoryId) {
+        window.location.href = `/contracts?category_id=${categoryId}`;
+    } else {
+        window.location.href = '/contracts';
+    }
+});
+$('#filter-status-contract').on('change', filterContracts);

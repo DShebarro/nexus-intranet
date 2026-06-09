@@ -107,3 +107,52 @@ $(function () {
            .fail(() => showToast('Erro ao remover', 'error'));
     });
 });
+
+// Funções de filtro para tarefas
+function filterTasks() {
+    const searchTerm = $('#search-tasks').val().toLowerCase();
+    const categoryId = $('#filter-category-task').val();
+    const priority = $('#filter-priority-task').val();
+    
+    $('.task-card').each(function() {
+        const $card = $(this);
+        const title = $card.data('title').toLowerCase();
+        const description = $card.data('description').toLowerCase();
+        const cardCategory = $card.data('category');
+        const cardPriority = $card.data('priority');
+        
+        let show = true;
+        
+        if (searchTerm && !title.includes(searchTerm) && !description.includes(searchTerm)) {
+            show = false;
+        }
+        
+        if (categoryId && cardCategory != categoryId) {
+            show = false;
+        }
+        
+        if (priority && cardPriority !== priority) {
+            show = false;
+        }
+        
+        show ? $card.show() : $card.hide();
+    });
+    
+    // Atualizar contagens das colunas
+    $('.kanban-col').each(function() {
+        const visibleCount = $(this).find('.task-card:visible').length;
+        $(this).closest('.bg-slate-950\\/30').find('.task-count').text(visibleCount);
+    });
+}
+
+// Event listeners para filtros
+$('#search-tasks').on('keyup', filterTasks);
+$('#filter-category-task').on('change', function() {
+    const categoryId = $(this).val();
+    if (categoryId) {
+        window.location.href = `/tasks?category_id=${categoryId}`;
+    } else {
+        window.location.href = '/tasks';
+    }
+});
+$('#filter-priority-task').on('change', filterTasks);
