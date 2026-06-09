@@ -24,3 +24,6 @@ window.openModal = function(html) {
 window.closeModal = function() {
     $('#modal-container').addClass('hidden').removeClass('flex');
 };
+
+// Carregar categories.js dinamicamente
+$.getScript('/assets/js/categories.js');

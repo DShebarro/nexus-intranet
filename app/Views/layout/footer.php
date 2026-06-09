@@ -12,3 +12,4 @@
 <script>lucide.createIcons();</script>
 </body>
 </html>
+<script src="/assets/js/categories.js"></script>
