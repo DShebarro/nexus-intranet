@@ -88,3 +88,45 @@ CREATE TABLE activity_logs (
 -- Inserir usuário padrão
 INSERT INTO users (name, email, role, avatar, password) VALUES
 ('Carlos Silva', 'carlos@nexus.com', 'admin', 'CS', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+-- ============================================================
+-- Categorias para organização
+-- ============================================================
+
+CREATE TABLE categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    type ENUM('task', 'contract', 'site') NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_type (type)
+) ENGINE=InnoDB;
+
+-- Adicionar categoria_id às tabelas existentes
+ALTER TABLE tasks ADD COLUMN category_id INT NULL,
+    ADD FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL;
+
+ALTER TABLE contracts ADD COLUMN category_id INT NULL,
+    ADD FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL;
+
+ALTER TABLE sites ADD COLUMN category_id INT NULL,
+    ADD FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL;
+
+-- Inserir categorias padrão
+INSERT INTO categories (name, type) VALUES
+-- Tarefas
+('Desenvolvimento', 'task'),
+('Design', 'task'),
+('Infraestrutura', 'task'),
+('Documentação', 'task'),
+('Testes', 'task'),
+-- Contratos
+('Fornecedores', 'contract'),
+('Parcerias', 'contract'),
+('Serviços', 'contract'),
+('Licenças', 'contract'),
+('Manutenção', 'contract'),
+-- Sites
+('Sistemas Internos', 'site'),
+('Ferramentas', 'site'),
+('Documentação', 'site'),
+('Redes Sociais', 'site'),
+('Governamentais', 'site');
