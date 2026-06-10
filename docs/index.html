@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Intranet - Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        .kanban-col { min-height: 400px; }
+        .task-card { transition: all 0.2s ease; cursor: pointer; }
+        .task-card:hover { transform: translateY(-2px); border-color: #6366f1; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100">
+    <header class="bg-slate-950/80 border-b border-slate-800 backdrop-blur-md px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="bg-gradient-to-tr from-blue-600 to-indigo-500 p-2.5 rounded-xl">
+                <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+            </div>
+            <h1 class="text-lg font-bold">NEXUS INTRANET</h1>
+        </div>
+        <div class="text-sm text-slate-400">Demo Estática | GitHub Pages</div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <aside class="w-64 bg-slate-950/40 border-r border-slate-800 p-4 hidden md:flex flex-col">
+            <nav class="space-y-1">
+                <a href="index.html" class="bg-indigo-600 text-white flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="tasks.html" class="text-slate-400 hover:text-white hover:bg-slate-800/50 flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium">
+                    <i data-lucide="check-square" class="w-4 h-4"></i>
+                    <span>Tarefas</span>
+                </a>
+                <a href="contracts.html" class="text-slate-400 hover:text-white hover:bg-slate-800/50 flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium">
+                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                    <span>Contratos</span>
+                </a>
+                <a href="sites.html" class="text-slate-400 hover:text-white hover:bg-slate-800/50 flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium">
+                    <i data-lucide="globe" class="w-4 h-4"></i>
+                    <span>Sites</span>
+                </a>
+                <a href="#" class="text-slate-400 hover:text-white hover:bg-slate-800/50 flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium">
+                    <i data-lucide="message-square" class="w-4 h-4"></i>
+                    <span>Chat</span>
+                </a>
+                <a href="#" class="text-slate-400 hover:text-white hover:bg-slate-800/50 flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium">
+                    <i data-lucide="history" class="w-4 h-4"></i>
+                    <span>Logs</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-6">
+            <div class="bg-yellow-500/20 border border-yellow-500 rounded-lg p-4 mb-6">
+                <p class="text-yellow-300 flex items-center space-x-2">
+                    <i data-lucide="info" class="w-5 h-5"></i>
+                    <span>⚠️ Esta é uma demonstração estática do Nexus Intranet. O sistema completo com funcionalidades dinâmicas (PHP/MySQL) está disponível no repositório original.</span>
+                </p>
+            </div>
+
+            <h2 class="text-2xl font-bold mb-6">Dashboard</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-slate-400 text-sm">Tarefas Ativas</p>
+                            <p class="text-3xl font-bold mt-1">12</p>
+                        </div>
+                        <i data-lucide="check-square" class="w-8 h-8 text-indigo-400"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-slate-400 text-sm">Contratos Ativos</p>
+                            <p class="text-3xl font-bold mt-1">8</p>
+                        </div>
+                        <i data-lucide="file-text" class="w-8 h-8 text-emerald-400"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-slate-400 text-sm">Valor Total</p>
+                            <p class="text-3xl font-bold mt-1">R$ 61.250,50</p>
+                        </div>
+                        <i data-lucide="dollar-sign" class="w-8 h-8 text-amber-400"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-slate-400 text-sm">Sites Online</p>
+                            <p class="text-3xl font-bold mt-1">15</p>
+                        </div>
+                        <i data-lucide="globe" class="w-8 h-8 text-blue-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/50 rounded-xl border border-slate-700 p-6">
+                <h3 class="font-bold mb-4">Sobre o Projeto</h3>
+                <p class="text-slate-300 mb-4">
+                    O Nexus Intranet é um sistema completo de gestão empresarial desenvolvido com:
+                </p>
+                <ul class="space-y-2 text-slate-400">
+                    <li>✓ <strong class="text-white">Backend:</strong> PHP 8.2+ com padrão MVC</li>
+                    <li>✓ <strong class="text-white">Banco de Dados:</strong> MySQL 8.0+</li>
+                    <li>✓ <strong class="text-white">Frontend:</strong> Tailwind CSS + jQuery + AJAX</li>
+                    <li>✓ <strong class="text-white">Funcionalidades:</strong> Kanban, Contratos, Sites, Chat com IA</li>
+                </ul>
+                <div class="mt-6 pt-6 border-t border-slate-700">
+                    <a href="https://github.com/seu-usuario/nexus-intranet" target="_blank" class="text-indigo-400 hover:text-indigo-300 flex items-center space-x-2">
+                        <i data-lucide="github" class="w-5 h-5"></i>
+                        <span>Ver código fonte completo no GitHub</span>
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        // Animação de contagem
+        $('.text-3xl').each(function() {
+            const $this = $(this);
+            const final = parseInt($this.text().replace(/\D/g, '')) || 0;
+            if (final > 0) {
+                let current = 0;
+                const interval = setInterval(() => {
+                    current += Math.ceil(final / 30);
+                    if (current >= final) {
+                        current = final;
+                        clearInterval(interval);
+                    }
+                    $this.text(current.toLocaleString());
+                }, 30);
+            }
+        });
+    </script>
+</body>
+</html>
