@@ -83,7 +83,9 @@
                     data-partner="<?= htmlspecialchars($contract['partner']) ?>"
                     data-object="<?= htmlspecialchars($contract['object']) ?>"
                     data-status="<?= $contract['status'] ?>"
-                    data-category="<?= $contract['category_id'] ?>">
+                    data-category="<?= $contract['category_id'] ?>"
+                    data-value="<?= $contract['value'] ?>"
+                    data-end-date="<?= $contract['end_date'] ?>">
                     <td class="p-4 text-sm"><?= htmlspecialchars($contract['code']) ?></td>
                     <td class="p-4 text-sm"><?= htmlspecialchars($contract['partner']) ?></td>
                     <td class="p-4 text-sm"><?= htmlspecialchars($contract['object']) ?></td>

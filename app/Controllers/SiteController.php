@@ -45,6 +45,14 @@ class SiteController extends BaseController
         $this->json(['success' => true, 'id' => $id], 201);
     }
 
+    public function update(Request $req, array $params): void
+    {
+        $data = $req->json();
+        $this->site->update((int) $params['id'], $data);
+        $this->log('site', "Site #{$params['id']} atualizado: {$data['name']}");
+        $this->json(['success' => true]);
+    }
+
     public function destroy(Request $req, array $params): void
     {
         $this->site->delete((int) $params['id']);

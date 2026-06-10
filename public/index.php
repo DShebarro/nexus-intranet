@@ -23,6 +23,7 @@ $router->add('GET', '/logs',      'LogController@index');
 
 // Rotas da API - Tasks
 $router->add('POST',   '/api/tasks',              'TaskController@store');
+$router->add('PUT',    '/api/tasks/{id}',         'TaskController@update');
 $router->add('PATCH',  '/api/tasks/{id}/move',    'TaskController@move');
 $router->add('DELETE', '/api/tasks/{id}',         'TaskController@destroy');
 $router->add('GET',    '/api/tasks',              'TaskController@apiList');
@@ -36,6 +37,7 @@ $router->add('DELETE', '/api/contracts/{id}',     'ContractController@destroy');
 // Rotas da API - Sites
 $router->add('GET',    '/api/sites',              'SiteController@apiList');
 $router->add('POST',   '/api/sites',              'SiteController@store');
+$router->add('PUT',    '/api/sites/{id}',         'SiteController@update');
 $router->add('DELETE', '/api/sites/{id}',         'SiteController@destroy');
 
 // Rotas da API - Categories
@@ -44,5 +46,10 @@ $router->add('POST',   '/api/categories',         'CategoryController@store');
 
 // Rotas da API - Logs
 $router->add('GET',    '/api/logs',               'LogController@apiList');
+$router->add('DELETE', '/api/logs',               'LogController@clear');
+
+// Rotas da API - Chat
+$router->add('GET',    '/api/chats/{slug}/messages', 'ChatController@getMessages');
+$router->add('POST',   '/api/chats/{slug}/messages', 'ChatController@storeMessage');
 
 $router->dispatch($request);

@@ -68,13 +68,14 @@
             </div>
             <div class="flex-1 p-4 space-y-3 kanban-col" data-status="<?= $key ?>">
                 <?php foreach ($columns[$key] as $task): ?>
-                <div class="task-card bg-slate-900 border border-slate-800 p-4 rounded-xl" 
-                     data-id="<?= $task['id'] ?>"
-                     data-title="<?= htmlspecialchars($task['title']) ?>"
-                     data-description="<?= htmlspecialchars($task['description'] ?? '') ?>"
-                     data-priority="<?= $task['priority'] ?>"
-                     data-category="<?= $task['category_id'] ?>"
-                     draggable="true">
+                 <div class="task-card bg-slate-900 border border-slate-800 p-4 rounded-xl" 
+                      data-id="<?= $task['id'] ?>"
+                      data-title="<?= htmlspecialchars($task['title']) ?>"
+                      data-description="<?= htmlspecialchars($task['description'] ?? '') ?>"
+                      data-priority="<?= $task['priority'] ?>"
+                      data-category="<?= $task['category_id'] ?>"
+                      data-date="<?= $task['due_date'] ?>"
+                      draggable="true">
                     <div class="flex justify-between items-start mb-2">
                         <h4 class="font-bold text-sm text-slate-200"><?= htmlspecialchars($task['title']) ?></h4>
                         <?php if ($task['category_name']): ?>

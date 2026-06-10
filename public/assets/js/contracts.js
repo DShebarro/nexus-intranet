@@ -66,6 +66,86 @@ $(function () {
         });
     });
     
+    // Editar contrato
+    $(document).on('click', '.btn-edit-contract', function () {
+        const id = $(this).data('id');
+        const row = $(this).closest('.contract-row');
+        const code = row.data('code');
+        const partner = row.data('partner');
+        const object = row.data('object');
+        const value = row.data('value');
+        const categoryId = row.data('category');
+        const status = row.data('status');
+        const endDate = row.data('end-date');
+        
+        CategoryManager.loadCategories('contract').done(function(categories) {
+            let categoryOptions = '<option value="">Sem pasta</option>';
+            categories.forEach(function(cat) {
+                const selected = (cat.id == categoryId) ? 'selected' : '';
+                categoryOptions += `<option value="${cat.id}" ${selected}>${cat.name}</option>`;
+            });
+            
+            openModal(`
+                <h3 class="font-bold text-lg text-white mb-4">Editar Contrato</h3>
+                <form id="form-edit-contract" class="space-y-4">
+                    <input type="text" id="edit-c-code" placeholder="Código do Contrato" required
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
+                    <input type="text" id="edit-c-partner" placeholder="Fornecedor/Parceiro" required
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
+                    <input type="text" id="edit-c-object" placeholder="Objeto do Contrato" required
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
+                    <input type="number" id="edit-c-value" placeholder="Valor" step="0.01" required
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
+                    <select id="edit-c-category"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
+                        ${categoryOptions}
+                    </select>
+                    <select id="edit-c-status"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
+                        <option value="vigente">Vigente</option>
+                        <option value="em_renovacao">Em Renovação</option>
+                        <option value="vencido">Vencido</option>
+                    </select>
+                    <input type="date" id="edit-c-end-date" required
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
+                    <div class="flex justify-end space-x-2 pt-2">
+                        <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-700 rounded-xl text-sm">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 rounded-xl text-white text-sm">Salvar</button>
+                    </div>
+                </form>
+            `);
+            
+            // Set values safely
+            $('#edit-c-code').val(code);
+            $('#edit-c-partner').val(partner);
+            $('#edit-c-object').val(object);
+            $('#edit-c-value').val(value);
+            $('#edit-c-status').val(status);
+            $('#edit-c-end-date').val(endDate);
+            
+            $('#form-edit-contract').on('submit', function (e) {
+                e.preventDefault();
+                api.put('/api/contracts/' + id, {
+                    code: $('#edit-c-code').val(),
+                    partner: $('#edit-c-partner').val(),
+                    object: $('#edit-c-object').val(),
+                    value: parseFloat($('#edit-c-value').val()),
+                    status: $('#edit-c-status').val(),
+                    end_date: $('#edit-c-end-date').val(),
+                    category_id: $('#edit-c-category').val() || null
+                })
+                .done(function () {
+                    showToast('Contrato atualizado!', 'success');
+                    closeModal();
+                    location.reload();
+                })
+                .fail(function () {
+                    showToast('Erro ao atualizar contrato', 'error');
+                });
+            });
+        });
+    });
+    
     // Deletar contrato
     $(document).on('click', '.btn-delete-contract', function () {
         const id = $(this).data('id');

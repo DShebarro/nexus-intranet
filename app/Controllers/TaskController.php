@@ -39,6 +39,14 @@ class TaskController extends BaseController
         $this->json(['success' => true, 'id' => $id], 201);
     }
 
+    public function update(Request $req, array $params): void
+    {
+        $data = $req->json();
+        $this->task->update((int) $params['id'], $data);
+        $this->log('task', "Tarefa #{$params['id']} atualizada: {$data['title']}");
+        $this->json(['success' => true]);
+    }
+
     public function move(Request $req, array $params): void
     {
         $data = $req->json();

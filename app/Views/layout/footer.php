@@ -6,10 +6,10 @@
 </div>
 
 <script src="/assets/js/app.js"></script>
+<script src="/assets/js/categories.js"></script>
 <?php if (isset($pageScript)): ?>
     <script src="/assets/js/<?= $pageScript ?>.js"></script>
 <?php endif; ?>
 <script>lucide.createIcons();</script>
 </body>
 </html>
-<script src="/assets/js/categories.js"></script>

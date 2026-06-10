@@ -22,6 +22,12 @@ class LogController extends BaseController
         $this->log('navigation', 'Página de Logs de Atividades carregada');
     }
 
+    public function apiList(Request $req): void
+    {
+        $logs = $this->logModel->recent(100);
+        $this->json($logs);
+    }
+
     public function clear(Request $req): void
     {
         $this->logModel->clearAll();

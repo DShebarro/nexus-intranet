@@ -57,7 +57,8 @@
              data-description="<?= htmlspecialchars($site['description'] ?? '') ?>"
              data-category="<?= $site['category_id'] ?>"
              data-type="<?= $site['is_internal'] ?>"
-             data-status="<?= $site['status'] ?>">
+             data-status="<?= $site['status'] ?>"
+             data-url="<?= htmlspecialchars($site['url']) ?>">
             <div class="flex items-start justify-between mb-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center">
@@ -87,7 +88,7 @@
             <p class="text-sm text-slate-400 mb-4"><?= htmlspecialchars($site['description'] ?? 'Sem descriÃ§Ã£o') ?></p>
             <div class="flex items-center justify-between">
                 <span class="text-xs px-2 py-1 rounded-full bg-slate-800 text-slate-400">
-                    <?= $site['is_internal'] ? 'í´’ Interno' : 'í¼ Externo' ?>
+                    <?= $site['is_internal'] ? 'ğŸ’¼ Interno' : 'ğŸŒ Externo' ?>
                 </span>
                 <a href="<?= htmlspecialchars($site['url']) ?>" target="_blank" 
                    class="text-sm text-indigo-400 hover:text-indigo-300 flex items-center space-x-1">

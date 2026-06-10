@@ -36,7 +36,13 @@ $navItems = [
     <aside class="w-64 bg-slate-950/40 border-r border-slate-800 p-4 hidden md:flex flex-col">
         <nav class="space-y-1">
         <?php foreach ($navItems as $item): ?>
-            <?php $active = str_starts_with($currentPath, $item['path']); ?>
+            <?php
+            if ($item['path'] === '/dashboard') {
+                $active = ($currentPath === '/' || $currentPath === '/dashboard' || str_starts_with($currentPath, '/dashboard/'));
+            } else {
+                $active = ($currentPath === $item['path'] || str_starts_with($currentPath, $item['path'] . '/'));
+            }
+            ?>
             <a href="<?= $item['path'] ?>"
                class="<?= $active ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800/50' ?>
                       flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all">

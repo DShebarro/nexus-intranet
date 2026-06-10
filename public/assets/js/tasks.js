@@ -97,6 +97,77 @@ $(function () {
                 .fail(() => showToast('Erro ao mover tarefa', 'error'));
         }
     });
+    // Editar tarefa
+    $(document).on('click', '.btn-edit-task', function () {
+        const id = $(this).data('id');
+        const card = $(this).closest('.task-card');
+        const title = card.data('title');
+        const desc = card.data('description');
+        const priority = card.data('priority');
+        const categoryId = card.data('category');
+        const status = card.closest('.kanban-col').data('status');
+        const rawDate = card.data('date') || '';
+        
+        CategoryManager.loadCategories('task').done(function(categories) {
+            let categoryOptions = '<option value="">Sem pasta</option>';
+            categories.forEach(function(cat) {
+                const selected = (cat.id == categoryId) ? 'selected' : '';
+                categoryOptions += `<option value="${cat.id}" ${selected}>${cat.name}</option>`;
+            });
+            
+            openModal(`
+                <h3 class="font-bold text-lg text-white mb-4">Editar Tarefa</h3>
+                <form id="form-edit-task" class="space-y-4">
+                    <input type="text" id="edit-t-title" placeholder="Título" required
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
+                    <textarea id="edit-t-desc" placeholder="Descrição" rows="3"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white"></textarea>
+                    <select id="edit-t-category"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
+                        ${categoryOptions}
+                    </select>
+                    <select id="edit-t-priority"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
+                        <option value="baixa">Baixa</option>
+                        <option value="media">Média</option>
+                        <option value="alta">Alta</option>
+                    </select>
+                    <input type="date" id="edit-t-date" required
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
+                    <div class="flex justify-end space-x-2 pt-2">
+                        <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-700 rounded-xl text-sm">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 rounded-xl text-white text-sm">Salvar</button>
+                    </div>
+                </form>
+            `);
+            
+            // Set values safely
+            $('#edit-t-title').val(title);
+            $('#edit-t-desc').val(desc);
+            $('#edit-t-priority').val(priority);
+            $('#edit-t-date').val(rawDate);
+            
+            $('#form-edit-task').on('submit', function (e) {
+                e.preventDefault();
+                api.put('/api/tasks/' + id, {
+                    title: $('#edit-t-title').val(),
+                    description: $('#edit-t-desc').val(),
+                    priority: $('#edit-t-priority').val(),
+                    due_date: $('#edit-t-date').val(),
+                    category_id: $('#edit-t-category').val() || null,
+                    status: status
+                })
+                .done(function () {
+                    showToast('Tarefa atualizada!', 'success');
+                    closeModal();
+                    location.reload();
+                })
+                .fail(function () {
+                    showToast('Erro ao atualizar tarefa', 'error');
+                });
+            });
+        });
+    });
     
     // Deletar tarefa
     $(document).on('click', '.btn-delete-task', function () {
