@@ -3,29 +3,35 @@ $(function () {
     let pollInterval = null;
 
     $('.chat-selector').on('click', function () {
-        const slug = $(this).data('slug');
+        const slug  = $(this).data('slug');
         const title = $(this).data('title');
 
         // Highlight selected chat
-        $('.chat-selector').removeClass('bg-slate-800/80 border-slate-700').addClass('border-transparent');
-        $(this).addClass('bg-slate-800/80 border-slate-700').removeClass('border-transparent');
+        $('.chat-selector').css({
+            'background': 'transparent',
+            'border-color': 'transparent',
+            'color': 'var(--text-muted)'
+        });
+        $(this).css({
+            'background': 'var(--bg-elevated)',
+            'border-color': 'var(--border-strong)',
+            'color': 'var(--text-primary)'
+        });
 
-        // Setup Chat Frame
-        $('#empty-chat-state').addClass('hidden');
-        $('#chat-header').removeClass('hidden');
+        // Show Chat Frame
+        $('#empty-chat-state').hide();
+        $('#chat-header').css('display', 'flex').removeClass('hidden');
         $('#chat-title').text(title);
-        $('#chat-messages-container').removeClass('hidden');
-        $('#chat-input-form').removeClass('hidden');
+        $('#chat-messages-container').css('display','flex').removeClass('hidden').css('flex-direction','column');
+        $('#chat-input-form').css('display','block').removeClass('hidden');
 
         activeChatSlug = slug;
         loadMessages(slug, true);
 
-        // Setup Polling (every 3 seconds)
+        // Polling every 3s
         if (pollInterval) clearInterval(pollInterval);
         pollInterval = setInterval(function () {
-            if (activeChatSlug === slug) {
-                loadMessages(slug, false);
-            }
+            if (activeChatSlug === slug) loadMessages(slug, false);
         }, 3000);
     });
 
@@ -68,31 +74,31 @@ $(function () {
 
         if (messages.length === 0) {
             container.html(`
-                <div class="flex flex-col items-center justify-center h-full text-slate-500 text-sm">
-                    <p>Nenhuma mensagem por aqui ainda.</p>
-                    <p class="text-xs mt-1">Envie uma mensagem abaixo para iniciar a conversa!</p>
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--text-faint);">
+                    <i data-lucide="message-circle" style="width:36px;height:36px;opacity:0.2;"></i>
+                    <p style="font-size:13px;">Nenhuma mensagem ainda. Diga olá!</p>
                 </div>
             `);
+            if (typeof lucide !== 'undefined') lucide.createIcons();
             return;
         }
 
         messages.forEach(function (msg) {
-            const isUser = msg.sender_type === 'user';
-            const alignClass = isUser ? 'justify-end' : 'justify-start';
-            const bubbleBg = isUser ? 'bg-indigo-600 text-white rounded-l-2xl rounded-tr-2xl' : 'bg-slate-800 text-slate-100 rounded-r-2xl rounded-tl-2xl border border-slate-700/50';
+            const isUser  = msg.sender_type === 'user';
             const timeStr = formatTime(msg.sent_at);
 
+            const bubbleStyle = isUser
+                ? 'background:linear-gradient(135deg,#6366f1,#7c3aed);color:white;border-radius:16px 16px 4px 16px;box-shadow:0 4px 12px rgba(99,102,241,0.25);padding:12px 16px;'
+                : 'background:var(--bg-elevated);color:var(--text-primary);border:1px solid var(--border);border-radius:16px 16px 16px 4px;padding:12px 16px;';
+
             const html = `
-                <div class="flex ${alignClass} space-x-2">
-                    <div class="max-w-[70%]">
-                        <div class="text-[11px] text-slate-500 mb-1 px-1 flex items-center space-x-1 ${isUser ? 'justify-end' : 'justify-start'}">
-                            <span class="font-semibold text-slate-400">${escapeHtml(msg.sender_name)}</span>
-                            <span>•</span>
-                            <span>${timeStr}</span>
-                        </div>
-                        <div class="px-4 py-3 text-sm shadow-md leading-relaxed ${bubbleBg}">
-                            ${escapeHtml(msg.content)}
-                        </div>
+                <div style="display:flex;flex-direction:column;align-items:${isUser ? 'flex-end' : 'flex-start'};gap:4px;">
+                    <div style="font-size:11px;color:var(--text-faint);padding:0 4px;">
+                        <span style="font-weight:600;color:var(--text-muted);">${escapeHtml(msg.sender_name)}</span>
+                        &nbsp;·&nbsp; ${timeStr}
+                    </div>
+                    <div class="chat-bubble" style="${bubbleStyle}font-size:13px;line-height:1.6;max-width:70%;word-break:break-word;">
+                        ${escapeHtml(msg.content)}
                     </div>
                 </div>
             `;
@@ -103,6 +109,7 @@ $(function () {
             container.scrollTop(container[0].scrollHeight);
         }
     }
+
 
     function formatTime(dateTimeStr) {
         // Formatos aceitos: YYYY-MM-DD HH:MM:SS

@@ -1,65 +1,88 @@
 <?php $pageScript = 'chat'; ?>
-<div class="flex h-[calc(100vh-73px)] overflow-hidden">
-    <!-- Sidebar de Canais/Conversas -->
-    <aside class="w-80 bg-slate-950/20 border-r border-slate-800 flex flex-col">
-        <div class="p-4 border-b border-slate-800">
-            <h2 class="text-lg font-bold text-slate-100">Canais e Conversas</h2>
-            <p class="text-xs text-slate-500 mt-1">Selecione um canal para interagir</p>
+
+<div style="display:flex;height:calc(100vh - 60px);overflow:hidden;">
+
+    <!-- Channels Sidebar -->
+    <aside style="width:260px;flex-shrink:0;background:var(--bg-surface);border-right:1px solid var(--border);display:flex;flex-direction:column;">
+        <!-- Header -->
+        <div style="padding:20px;border-bottom:1px solid var(--border);">
+            <h2 style="font-size:14px;font-weight:700;color:var(--text-primary);">Canais & Conversas</h2>
+            <p style="font-size:11px;color:var(--text-faint);margin-top:3px;">Selecione para começar</p>
         </div>
-        <nav class="flex-1 overflow-y-auto p-3 space-y-1">
-            <?php foreach ($chats as $chat): ?>
-                <?php
+
+        <!-- Channel List -->
+        <nav style="flex:1;overflow-y:auto;padding:10px;">
+            <?php foreach ($chats as $chat):
                 $isAI = $chat['type'] === 'ai';
-                $icon = $isAI ? 'bot' : 'hash';
-                $iconColor = $isAI ? 'text-indigo-400' : 'text-slate-400';
-                ?>
-                <button class="w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-left text-sm font-medium transition-all group chat-selector border border-transparent hover:bg-slate-800/50" 
-                        data-slug="<?= htmlspecialchars($chat['slug']) ?>" 
-                        data-title="<?= htmlspecialchars($chat['title']) ?>">
-                    <div class="p-2 bg-slate-800 rounded-lg group-hover:bg-slate-700 transition-all">
-                        <i data-lucide="<?= $icon ?>" class="w-4 h-4 <?= $iconColor ?>"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-slate-200 group-hover:text-white font-semibold truncate"><?= htmlspecialchars($chat['title']) ?></p>
-                        <p class="text-xs text-slate-500 truncate"><?= $isAI ? 'Assistente Inteligente' : 'Canal Corporativo' ?></p>
-                    </div>
-                </button>
+            ?>
+            <button class="chat-selector w-full"
+                    data-slug="<?= htmlspecialchars($chat['slug']) ?>"
+                    data-title="<?= htmlspecialchars($chat['title']) ?>"
+                    style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:10px;text-align:left;background:transparent;border:1px solid transparent;cursor:pointer;transition:var(--transition);margin-bottom:4px;">
+                <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:<?= $isAI ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.05)' ?>;border:1px solid <?= $isAI ? 'rgba(99,102,241,0.25)' : 'var(--border)' ?>;">
+                    <i data-lucide="<?= $isAI ? 'bot' : 'hash' ?>" style="width:16px;height:16px;color:<?= $isAI ? '#818cf8' : 'var(--text-muted)' ?>;"></i>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:13px;font-weight:600;color:var(--text-primary);line-height:1.2;"><?= htmlspecialchars($chat['title']) ?></div>
+                    <div style="font-size:11px;color:var(--text-faint);margin-top:1px;"><?= $isAI ? 'Assistente Inteligente' : 'Canal Corporativo' ?></div>
+                </div>
+                <?php if ($isAI): ?>
+                <div style="width:6px;height:6px;background:#10b981;border-radius:50;flex-shrink:0;animation:pulse-green 2s infinite;"></div>
+                <?php endif; ?>
+            </button>
             <?php endforeach; ?>
         </nav>
+
+        <!-- Bottom Info -->
+        <div style="padding:12px;border-top:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:8px;padding:10px;background:var(--indigo-glow);border:1px solid rgba(99,102,241,0.2);border-radius:10px;">
+                <i data-lucide="shield-check" style="width:14px;height:14px;color:var(--indigo-light);flex-shrink:0;"></i>
+                <span style="font-size:11px;color:var(--text-muted);line-height:1.3;">Comunicação segura e criptografada</span>
+            </div>
+        </div>
     </aside>
 
-    <!-- Área de Mensagens -->
-    <main class="flex-1 flex flex-col bg-slate-900/40">
-        <!-- Cabeçalho do Chat Ativo -->
-        <div id="chat-header" class="px-6 py-4 border-b border-slate-800 bg-slate-950/10 flex items-center justify-between hidden">
-            <div class="flex items-center space-x-3">
-                <h3 id="chat-title" class="font-bold text-slate-200">Selecione um Chat</h3>
+    <!-- Chat Main Area -->
+    <main style="flex:1;display:flex;flex-direction:column;background:var(--bg-base);overflow:hidden;">
+
+        <!-- Chat Header -->
+        <div id="chat-header" class="hidden" style="padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg-surface);display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div id="chat-header-icon" style="width:36px;height:36px;border-radius:10px;background:var(--indigo-glow);border:1px solid rgba(99,102,241,0.2);display:flex;align-items:center;justify-content:center;">
+                    <i data-lucide="message-square" style="width:16px;height:16px;color:var(--indigo-light);"></i>
+                </div>
+                <div>
+                    <h3 id="chat-title" style="font-size:14px;font-weight:700;color:var(--text-primary);">Canal</h3>
+                    <div style="font-size:11px;color:var(--emerald);display:flex;align-items:center;gap:4px;">
+                        <div style="width:5px;height:5px;background:var(--emerald);border-radius:50%;animation:pulse-green 2s infinite;"></div>
+                        Online
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Tela Vazia (Quando nenhum chat selecionado) -->
-        <div id="empty-chat-state" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
-            <div class="bg-indigo-600/10 p-6 rounded-full border border-indigo-500/20 mb-4 animate-bounce">
-                <i data-lucide="message-square" class="w-12 h-12 text-indigo-400"></i>
+        <!-- Empty State -->
+        <div id="empty-chat-state" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px;text-align:center;">
+            <div style="width:72px;height:72px;background:var(--indigo-glow);border:1px solid rgba(99,102,241,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+                <i data-lucide="message-square" style="width:32px;height:32px;color:var(--indigo-light);"></i>
             </div>
-            <h3 class="text-lg font-bold text-slate-200">Bem-vindo ao Chat da Nexus!</h3>
-            <p class="text-sm text-slate-500 max-w-sm mt-1">Selecione uma conversa ou o assistente virtual Nexus AI no menu lateral para começar a conversar.</p>
+            <h3 style="font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">Bem-vindo ao Chat Nexus</h3>
+            <p style="font-size:13px;color:var(--text-muted);max-width:300px;line-height:1.6;">Selecione um canal ou o assistente Nexus AI no painel lateral para começar a conversar.</p>
         </div>
 
-        <!-- Container de Mensagens -->
-        <div id="chat-messages-container" class="flex-1 overflow-y-auto p-6 space-y-4 hidden">
-            <!-- As mensagens serão inseridas aqui dinamicamente -->
-        </div>
+        <!-- Messages Container -->
+        <div id="chat-messages-container" class="hidden" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;"></div>
 
-        <!-- Barra de Envio de Mensagem -->
-        <form id="chat-input-form" class="p-4 border-t border-slate-800 bg-slate-950/20 hidden">
-            <div class="flex items-center space-x-3">
-                <input type="text" id="chat-message-input" placeholder="Digite sua mensagem..." autocomplete="off" required
-                       class="flex-1 bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors">
-                <button type="submit" 
-                        class="bg-indigo-600 hover:bg-indigo-500 text-white p-3 rounded-xl transition-all shadow-lg flex items-center justify-center">
-                    <i data-lucide="send" class="w-5 h-5"></i>
-                </button>
+        <!-- Input Form -->
+        <form id="chat-input-form" class="hidden" style="padding:16px 20px;border-top:1px solid var(--border);background:var(--bg-surface);">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="flex:1;display:flex;align-items:center;gap:10px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;padding:4px 4px 4px 16px;transition:var(--transition);" onfocusin="this.style.borderColor='rgba(99,102,241,0.5)';this.style.boxShadow='0 0 0 3px rgba(99,102,241,0.1)'" onfocusout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+                    <input type="text" id="chat-message-input" placeholder="Escreva sua mensagem..." autocomplete="off" required
+                           style="flex:1;background:transparent;border:none;outline:none;font-size:13px;color:var(--text-primary);font-family:inherit;" />
+                    <button type="submit" style="width:36px;height:36px;background:var(--indigo);border:none;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--transition);flex-shrink:0;" onmouseover="this.style.background='var(--indigo-light)'" onmouseout="this.style.background='var(--indigo)'">
+                        <i data-lucide="send" style="width:15px;height:15px;color:white;"></i>
+                    </button>
+                </div>
             </div>
         </form>
     </main>

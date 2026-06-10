@@ -1,135 +1,169 @@
 <?php $pageScript = 'contracts'; ?>
-<div class="p-6">
-    <!-- Barra de Ações Superior -->
-    <div class="mb-6">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold">Gerenciador de Contratos</h2>
-            <div class="flex space-x-3">
-                <button id="btn-new-category-contract" 
-                        data-type="contract"
-                        class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center space-x-2">
-                    <i data-lucide="folder-plus" class="w-4 h-4"></i>
-                    <span>Nova Pasta</span>
-                </button>
-                <button id="btn-new-contract" 
-                        class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center space-x-2">
-                    <i data-lucide="plus" class="w-4 h-4"></i>
-                    <span>Novo Contrato</span>
-                </button>
-            </div>
+
+<!-- Page Header -->
+<div style="padding:28px 28px 0;" class="fade-up">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+        <div>
+            <h1 class="page-title">Contratos</h1>
+            <p class="page-subtitle">Gerenciamento de contratos e acordos corporativos</p>
         </div>
-        
-        <!-- Barra de Pesquisa e Filtros -->
-        <div class="flex items-center space-x-4">
-            <div class="flex-1 relative">
-                <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                <input type="text" 
-                       id="search-contracts" 
-                       placeholder="Buscar contratos por código, fornecedor ou objeto..." 
-                       class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
-            </div>
-            <select id="filter-category-contract" class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500">
-                <option value="">Todas as Pastas</option>
-                <?php foreach ($categories as $cat): ?>
-                <option value="<?= $cat['id'] ?>" <?= ($activeCategory == $cat['id']) ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($cat['name']) ?> (<?= $cat['item_count'] ?>)
-                </option>
-                <?php endforeach; ?>
-            </select>
-            <select id="filter-status-contract" class="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500">
-                <option value="">Todos Status</option>
-                <option value="vigente">Vigente</option>
-                <option value="em_renovacao">Em Renovação</option>
-                <option value="vencido">Vencido</option>
-            </select>
+        <div style="display:flex;gap:10px;">
+            <button id="btn-new-category-contract" data-type="contract" class="btn btn-secondary">
+                <i data-lucide="folder-plus" style="width:14px;height:14px;"></i>
+                Nova Pasta
+            </button>
+            <button id="btn-new-contract" class="btn btn-primary">
+                <i data-lucide="plus" style="width:14px;height:14px;"></i>
+                Novo Contrato
+            </button>
         </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
-            <p class="text-slate-400 text-sm">Valor Total Alocado</p>
-            <p class="text-2xl font-bold mt-1">R$ <?= number_format($stats['total_value'], 2, ',', '.') ?></p>
+    <!-- Stats -->
+    <div class="stats-grid stagger" style="padding:0;margin-bottom:20px;grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card fade-up">
+            <div class="stat-card-icon" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2);">
+                <i data-lucide="dollar-sign" style="width:20px;height:20px;color:#fbbf24;"></i>
+            </div>
+            <div class="stat-card-label">Valor Total</div>
+            <div class="stat-card-value" style="font-size:20px;">R$ <?= number_format($stats['total_value'], 2, ',', '.') ?></div>
+            <div class="stat-card-sub">valor alocado</div>
         </div>
-        <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
-            <p class="text-slate-400 text-sm">Contratos Ativos</p>
-            <p class="text-2xl font-bold mt-1" id="active-count"><?= $stats['active_count'] ?></p>
+        <div class="stat-card fade-up">
+            <div class="stat-card-icon" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.2);">
+                <i data-lucide="file-check" style="width:20px;height:20px;color:#34d399;"></i>
+            </div>
+            <div class="stat-card-label">Contratos Ativos</div>
+            <div class="stat-card-value" id="active-count"><?= $stats['active_count'] ?></div>
+            <div class="stat-card-sub">em vigor</div>
         </div>
-        <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
-            <p class="text-slate-400 text-sm">Vencem Este Mês</p>
-            <p class="text-2xl font-bold mt-1"><?= $stats['expiring_count'] ?></p>
+        <div class="stat-card fade-up">
+            <div class="stat-card-icon" style="background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.2);">
+                <i data-lucide="clock" style="width:20px;height:20px;color:#fb7185;"></i>
+            </div>
+            <div class="stat-card-label">Vencem Este Mês</div>
+            <div class="stat-card-value"><?= $stats['expiring_count'] ?></div>
+            <div class="stat-card-sub">requerem atenção</div>
         </div>
     </div>
 
-    <!-- Tabela de Contratos -->
-    <div class="bg-slate-900/50 rounded-xl border border-slate-800 overflow-hidden">
-        <table class="w-full">
-            <thead class="bg-slate-800/50 border-b border-slate-700">
-                <tr>
-                    <th class="text-left p-4 text-sm font-semibold text-slate-400">Código</th>
-                    <th class="text-left p-4 text-sm font-semibold text-slate-400">Fornecedor</th>
-                    <th class="text-left p-4 text-sm font-semibold text-slate-400">Objeto</th>
-                    <th class="text-left p-4 text-sm font-semibold text-slate-400">Valor</th>
-                    <th class="text-left p-4 text-sm font-semibold text-slate-400">Status</th>
-                    <th class="text-left p-4 text-sm font-semibold text-slate-400">Pasta</th>
-                    <th class="text-left p-4 text-sm font-semibold text-slate-400">Vencimento</th>
-                    <th class="text-left p-4 text-sm font-semibold text-slate-400">Ações</th>
-                </tr>
-            </thead>
-            <tbody id="contracts-table-body">
-                <?php foreach ($contracts as $contract): ?>
-                <tr class="contract-row border-b border-slate-800 hover:bg-slate-800/30 transition-colors"
-                    data-code="<?= htmlspecialchars($contract['code']) ?>"
-                    data-partner="<?= htmlspecialchars($contract['partner']) ?>"
-                    data-object="<?= htmlspecialchars($contract['object']) ?>"
-                    data-status="<?= $contract['status'] ?>"
-                    data-category="<?= $contract['category_id'] ?>"
-                    data-value="<?= $contract['value'] ?>"
-                    data-end-date="<?= $contract['end_date'] ?>">
-                    <td class="p-4 text-sm"><?= htmlspecialchars($contract['code']) ?></td>
-                    <td class="p-4 text-sm"><?= htmlspecialchars($contract['partner']) ?></td>
-                    <td class="p-4 text-sm"><?= htmlspecialchars($contract['object']) ?></td>
-                    <td class="p-4 text-sm">R$ <?= number_format($contract['value'], 2, ',', '.') ?></td>
-                    <td class="p-4 text-sm">
-                        <?php
-                        $statusColors = [
-                            'vigente' => 'green',
-                            'em_renovacao' => 'yellow',
-                            'vencido' => 'red'
-                        ];
-                        $color = $statusColors[$contract['status']] ?? 'gray';
-                        ?>
-                        <span class="inline-flex px-2 py-1 rounded-full text-xs bg-<?= $color ?>-500/20 text-<?= $color ?>-300">
-                            <?= str_replace('_', ' ', $contract['status']) ?>
-                        </span>
-                    </td>
-                    <td class="p-4 text-sm">
-                        <?php if ($contract['category_name']): ?>
-                        <span class="inline-flex px-2 py-1 rounded-full text-xs bg-indigo-500/20 text-indigo-300">
-                            <?= htmlspecialchars($contract['category_name']) ?>
-                        </span>
-                        <?php else: ?>
-                        <span class="text-slate-500">—</span>
-                        <?php endif; ?>
-                    </td>
-                    <td class="p-4 text-sm"><?= date('d/m/Y', strtotime($contract['end_date'])) ?></td>
-                    <td class="p-4 text-sm">
-                        <button class="btn-edit-contract text-slate-400 hover:text-white mr-2" data-id="<?= $contract['id'] ?>">
-                            <i data-lucide="edit-3" class="w-4 h-4"></i>
-                        </button>
-                        <button class="btn-delete-contract text-rose-400 hover:text-rose-300" data-id="<?= $contract['id'] ?>">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+    <!-- Filters -->
+    <div class="filters-bar" style="padding:0;margin-bottom:16px;">
+        <div class="search-wrap">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="search-contracts" placeholder="Buscar por código, fornecedor ou objeto..." class="input-field search-input">
+        </div>
+        <select id="filter-category-contract" class="select-field">
+            <option value="">Todas as Pastas</option>
+            <?php foreach ($categories as $cat): ?>
+            <option value="<?= $cat['id'] ?>" <?= ($activeCategory == $cat['id']) ? 'selected' : '' ?>>
+                <?= htmlspecialchars($cat['name']) ?> (<?= $cat['item_count'] ?>)
+            </option>
+            <?php endforeach; ?>
+        </select>
+        <select id="filter-status-contract" class="select-field">
+            <option value="">Todos os Status</option>
+            <option value="vigente">Vigente</option>
+            <option value="em_renovacao">Em Renovação</option>
+            <option value="vencido">Vencido</option>
+        </select>
     </div>
 </div>
 
-<div id="modal-container" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-    <div class="bg-slate-900 rounded-2xl p-6 w-full max-w-md border border-slate-700">
-        <div id="modal-body"></div>
-    </div>
+<!-- Data Table -->
+<div class="data-table-wrap fade-up">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Fornecedor / Parceiro</th>
+                <th>Objeto</th>
+                <th>Valor</th>
+                <th>Status</th>
+                <th>Pasta</th>
+                <th>Vencimento</th>
+                <th style="width:80px;text-align:center;">Ações</th>
+            </tr>
+        </thead>
+        <tbody id="contracts-table-body">
+            <?php if (empty($contracts)): ?>
+            <tr>
+                <td colspan="8">
+                    <div class="empty-state">
+                        <i data-lucide="file-text" class="empty-state-icon"></i>
+                        <p>Nenhum contrato cadastrado ainda.</p>
+                        <button onclick="$('#btn-new-contract').click()" class="btn btn-primary" style="margin-top:8px;">
+                            <i data-lucide="plus" style="width:13px;height:13px;"></i>
+                            Criar primeiro contrato
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            <?php else: ?>
+            <?php foreach ($contracts as $contract):
+                $statusMap = [
+                    'vigente'      => ['label' => 'Vigente',       'class' => 'badge-green'],
+                    'em_renovacao' => ['label' => 'Em Renovação',  'class' => 'badge-yellow'],
+                    'vencido'      => ['label' => 'Vencido',       'class' => 'badge-red'],
+                ];
+                $s = $statusMap[$contract['status']] ?? ['label' => $contract['status'], 'class' => 'badge-gray'];
+
+                $endTs  = strtotime($contract['end_date']);
+                $isLate = $endTs < time() && $contract['status'] !== 'vencido';
+            ?>
+            <tr class="contract-row"
+                data-code="<?= htmlspecialchars($contract['code']) ?>"
+                data-partner="<?= htmlspecialchars($contract['partner']) ?>"
+                data-object="<?= htmlspecialchars($contract['object']) ?>"
+                data-status="<?= $contract['status'] ?>"
+                data-category="<?= $contract['category_id'] ?>"
+                data-value="<?= $contract['value'] ?>"
+                data-end-date="<?= $contract['end_date'] ?>">
+
+                <td>
+                    <code style="background:var(--bg-elevated);border:1px solid var(--border);padding:3px 8px;border-radius:6px;font-size:12px;color:var(--indigo-light);font-family:monospace;">
+                        <?= htmlspecialchars($contract['code']) ?>
+                    </code>
+                </td>
+                <td>
+                    <div style="font-weight:500;"><?= htmlspecialchars($contract['partner']) ?></div>
+                </td>
+                <td>
+                    <div class="td-muted" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<?= htmlspecialchars($contract['object']) ?>">
+                        <?= htmlspecialchars($contract['object']) ?>
+                    </div>
+                </td>
+                <td>
+                    <span style="font-weight:600;color:var(--text-primary);">R$ <?= number_format($contract['value'], 2, ',', '.') ?></span>
+                </td>
+                <td>
+                    <span class="badge <?= $s['class'] ?>"><?= $s['label'] ?></span>
+                </td>
+                <td>
+                    <?php if ($contract['category_name']): ?>
+                    <span class="badge badge-indigo"><?= htmlspecialchars($contract['category_name']) ?></span>
+                    <?php else: ?>
+                    <span style="color:var(--text-faint);font-size:12px;">—</span>
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <span style="color:<?= $isLate ? '#fb7185' : 'var(--text-muted)' ?>;font-size:13px;font-weight:<?= $isLate ? '600' : '400' ?>;">
+                        <?= date('d/m/Y', $endTs) ?>
+                    </span>
+                </td>
+                <td>
+                    <div style="display:flex;gap:4px;justify-content:center;">
+                        <button class="action-btn btn-edit-contract" data-id="<?= $contract['id'] ?>" title="Editar">
+                            <i data-lucide="edit-3" style="width:13px;height:13px;"></i>
+                        </button>
+                        <button class="action-btn danger btn-delete-contract" data-id="<?= $contract['id'] ?>" title="Excluir">
+                            <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+            <?php endif; ?>
+        </tbody>
+    </table>
 </div>

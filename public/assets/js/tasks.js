@@ -1,229 +1,234 @@
 $(function () {
-    // Inicializar botão de nova categoria
-    $('#btn-new-category-task').on('click', function() {
-        const type = $(this).data('type');
-        CategoryManager.showCreateCategoryModal(type);
+
+    // ---- Colapsar/expandir seções ----
+    $(document).on('click', '.task-section-toggle', function () {
+        const targetId = $(this).data('target');
+        const $body    = $('#' + targetId);
+        const $chevron = $(this).find('.section-chevron');
+        const isHidden = $body.is(':hidden');
+
+        $body.slideToggle(180);
+        $chevron.css('transform', isHidden ? 'rotate(0deg)' : 'rotate(-90deg)');
     });
-    
-    // Criar nova tarefa
-    $('#btn-new-task').on('click', function () {
-        // Carregar categorias para o dropdown
-        CategoryManager.loadCategories('task').done(function(categories) {
-            let categoryOptions = '<option value="">Sem pasta</option>';
-            categories.forEach(function(cat) {
-                categoryOptions += `<option value="${cat.id}">${cat.name}</option>`;
+
+    // ---- Checkbox: marcar/desmarcar como concluído ----
+    $(document).on('click', '.btn-toggle-done', function (e) {
+        e.stopPropagation();
+        const $btn    = $(this);
+        const id      = $btn.data('id');
+        const current = $btn.data('status');
+        const newStatus = current === 'done' ? 'todo' : 'done';
+
+        $btn.prop('disabled', true);
+        api.patch(`/api/tasks/${id}/move`, { status: newStatus })
+            .done(function () {
+                showToast(newStatus === 'done' ? '✓ Tarefa concluída!' : 'Tarefa reaberta', 'success');
+                location.reload();
+            })
+            .fail(function () {
+                showToast('Erro ao atualizar tarefa', 'error');
+                $btn.prop('disabled', false);
             });
-            
+    });
+
+    // ---- Select de mover status ----
+    $(document).on('change', '.btn-move-status', function () {
+        const id        = $(this).data('id');
+        const newStatus = $(this).val();
+        api.patch(`/api/tasks/${id}/move`, { status: newStatus })
+            .done(function () {
+                const labels = { todo: 'A Fazer', progress: 'Em Andamento', review: 'Em Revisão', done: 'Concluído' };
+                showToast(`Movida para "${labels[newStatus]}"`, 'success');
+                location.reload();
+            })
+            .fail(function () {
+                showToast('Erro ao mover tarefa', 'error');
+            });
+    });
+
+    // ---- Nova Categoria ----
+    $('#btn-new-category-task').on('click', function () {
+        CategoryManager.showCreateCategoryModal('task');
+    });
+
+    // ---- Nova Tarefa ----
+    $('#btn-new-task').on('click', function () {
+        openTaskModal();
+    });
+
+    // ---- Editar Tarefa ----
+    $(document).on('click', '.btn-edit-task', function (e) {
+        e.stopPropagation();
+        const id     = $(this).data('id');
+        const $row   = $(this).closest('.task-row');
+        openTaskModal({
+            id,
+            title:    $row.data('title'),
+            desc:     $row.data('description'),
+            priority: $row.data('priority'),
+            category: $row.data('category'),
+            status:   $row.data('status'),
+            date:     $row.data('date'),
+        });
+    });
+
+    // ---- Deletar Tarefa ----
+    $(document).on('click', '.btn-delete-task', function (e) {
+        e.stopPropagation();
+        const id = $(this).data('id');
+        if (!confirm('Excluir esta tarefa? Esta ação não pode ser desfeita.')) return;
+        api.delete(`/api/tasks/${id}`)
+            .done(function () { showToast('Tarefa removida', 'success'); location.reload(); })
+            .fail(function () { showToast('Erro ao remover tarefa', 'error'); });
+    });
+
+    // -------- Modal de Criar/Editar --------
+    function openTaskModal(edit = null) {
+        CategoryManager.loadCategories('task').done(function (categories) {
+            let catOpts = '<option value="">Sem pasta</option>';
+            categories.forEach(c => {
+                catOpts += `<option value="${c.id}" ${edit && c.id == edit.category ? 'selected' : ''}>${c.name}</option>`;
+            });
+
+            const statusOpts = `
+                <option value="todo"     ${edit && edit.status==='todo'     ? 'selected':''}>📋 A Fazer</option>
+                <option value="progress" ${edit && edit.status==='progress' ? 'selected':''}>⚡ Em Andamento</option>
+                <option value="review"   ${edit && edit.status==='review'   ? 'selected':''}>🔍 Em Revisão</option>
+                <option value="done"     ${edit && edit.status==='done'     ? 'selected':''}>✅ Concluído</option>
+            `;
+
+            const isEdit  = !!edit;
+            const title   = isEdit ? 'Editar Tarefa' : 'Nova Tarefa';
+            const btnLabel= isEdit ? 'Salvar Alterações' : 'Criar Tarefa';
+
             openModal(`
-                <h3 class="font-bold text-lg text-white mb-4">Nova Tarefa</h3>
-                <form id="form-task" class="space-y-4">
-                    <input type="text" id="t-title" placeholder="Título" required
-                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
-                    <textarea id="t-desc" placeholder="Descrição" rows="3"
-                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white"></textarea>
-                    <select id="t-category"
-                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
-                        ${categoryOptions}
-                    </select>
-                    <select id="t-priority"
-                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
-                        <option value="baixa">Baixa</option>
-                        <option value="media" selected>Média</option>
-                        <option value="alta">Alta</option>
-                    </select>
-                    <input type="date" id="t-date" required
-                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
-                    <div class="flex justify-end space-x-2 pt-2">
-                        <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-700 rounded-xl text-sm">Cancelar</button>
-                        <button type="submit" class="px-4 py-2 bg-indigo-600 rounded-xl text-white text-sm">Criar</button>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                    <div>
+                        <h3 style="font-size:16px;font-weight:700;color:var(--text-primary);">${title}</h3>
+                        ${isEdit ? `<p style="font-size:11px;color:var(--text-faint);margin-top:2px;">ID #${edit.id}</p>` : ''}
+                    </div>
+                    <button type="button" onclick="closeModal()" style="width:28px;height:28px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:16px;line-height:1;">✕</button>
+                </div>
+
+                <form id="form-task" style="display:flex;flex-direction:column;gap:14px;">
+                    <div>
+                        <label style="display:block;margin-bottom:6px;font-size:12px;font-weight:500;color:var(--text-muted);">Título da Tarefa *</label>
+                        <input type="text" id="t-title" placeholder="Ex: Revisar relatório mensal" required class="input-field">
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:6px;font-size:12px;font-weight:500;color:var(--text-muted);">Descrição</label>
+                        <textarea id="t-desc" placeholder="Detalhes da tarefa..." rows="3" class="input-field" style="resize:vertical;"></textarea>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <label style="display:block;margin-bottom:6px;font-size:12px;font-weight:500;color:var(--text-muted);">Prioridade</label>
+                            <select id="t-priority" class="select-field" style="width:100%;">
+                                <option value="baixa" ${isEdit && edit.priority==='baixa' ? 'selected':''}>🟢 Baixa</option>
+                                <option value="media" ${!isEdit || edit.priority==='media' ? 'selected':''}>🟡 Média</option>
+                                <option value="alta"  ${isEdit && edit.priority==='alta'  ? 'selected':''}>🔴 Alta</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display:block;margin-bottom:6px;font-size:12px;font-weight:500;color:var(--text-muted);">Status</label>
+                            <select id="t-status" class="select-field" style="width:100%;">${statusOpts}</select>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <label style="display:block;margin-bottom:6px;font-size:12px;font-weight:500;color:var(--text-muted);">Pasta</label>
+                            <select id="t-category" class="select-field" style="width:100%;">${catOpts}</select>
+                        </div>
+                        <div>
+                            <label style="display:block;margin-bottom:6px;font-size:12px;font-weight:500;color:var(--text-muted);">Data de Vencimento</label>
+                            <input type="date" id="t-date" class="input-field">
+                        </div>
+                    </div>
+                    <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:8px;border-top:1px solid var(--border);">
+                        <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="task-submit-btn">
+                            <i data-lucide="${isEdit ? 'save' : 'plus'}" style="width:13px;height:13px;"></i>
+                            ${btnLabel}
+                        </button>
                     </div>
                 </form>
             `);
-            
+
+            // Pre-fill if editing
+            if (isEdit) {
+                $('#t-title').val(edit.title);
+                $('#t-desc').val(edit.desc);
+                if (edit.date) $('#t-date').val(edit.date);
+            }
+
+            // Form submit
             $('#form-task').on('submit', function (e) {
                 e.preventDefault();
-                api.post('/api/tasks', {
-                    title: $('#t-title').val(),
-                    description: $('#t-desc').val(),
-                    priority: $('#t-priority').val(),
-                    due_date: $('#t-date').val(),
-                    category_id: $('#t-category').val() || null
-                })
-                .done(function (res) {
-                    showToast('Tarefa criada!', 'success');
+                const $btn = $('#task-submit-btn');
+                $btn.prop('disabled', true).text('Salvando...');
+
+                const payload = {
+                    title:       $('#t-title').val().trim(),
+                    description: $('#t-desc').val().trim(),
+                    priority:    $('#t-priority').val(),
+                    status:      $('#t-status').val(),
+                    due_date:    $('#t-date').val() || null,
+                    category_id: $('#t-category').val() || null,
+                };
+
+                const req = isEdit
+                    ? api.put(`/api/tasks/${edit.id}`, payload)
+                    : api.post('/api/tasks', payload);
+
+                req.done(function () {
+                    showToast(isEdit ? 'Tarefa atualizada!' : 'Tarefa criada com sucesso!', 'success');
                     closeModal();
                     location.reload();
-                })
-                .fail(function () {
-                    showToast('Erro ao criar tarefa', 'error');
+                }).fail(function () {
+                    showToast('Erro ao salvar tarefa', 'error');
+                    $btn.prop('disabled', false).text(isEdit ? 'Salvar Alterações' : 'Criar Tarefa');
                 });
             });
         });
-    });
-    
-    // Drag and Drop para mover tarefas
-    let draggedItem = null;
-    
-    $(document).on('dragstart', '.task-card', function(e) {
-        draggedItem = this;
-        e.originalEvent.dataTransfer.setData('text/plain', $(this).data('id'));
-        $(this).addClass('opacity-50');
-    });
-    
-    $(document).on('dragend', '.task-card', function() {
-        draggedItem = null;
-        $(this).removeClass('opacity-50');
-    });
-    
-    $(document).on('dragover', '.kanban-col', function(e) {
-        e.preventDefault();
-        $(this).addClass('bg-slate-800/30');
-    });
-    
-    $(document).on('dragleave', '.kanban-col', function() {
-        $(this).removeClass('bg-slate-800/30');
-    });
-    
-    $(document).on('drop', '.kanban-col', function(e) {
-        e.preventDefault();
-        $(this).removeClass('bg-slate-800/30');
-        
-        const taskId = $(this).closest('.task-card').data('id') || e.originalEvent.dataTransfer.getData('text/plain');
-        const newStatus = $(this).data('status');
-        
-        if (taskId && newStatus) {
-            api.patch(`/api/tasks/${taskId}/move`, { status: newStatus })
-                .done(() => location.reload())
-                .fail(() => showToast('Erro ao mover tarefa', 'error'));
-        }
-    });
-    // Editar tarefa
-    $(document).on('click', '.btn-edit-task', function () {
-        const id = $(this).data('id');
-        const card = $(this).closest('.task-card');
-        const title = card.data('title');
-        const desc = card.data('description');
-        const priority = card.data('priority');
-        const categoryId = card.data('category');
-        const status = card.closest('.kanban-col').data('status');
-        const rawDate = card.data('date') || '';
-        
-        CategoryManager.loadCategories('task').done(function(categories) {
-            let categoryOptions = '<option value="">Sem pasta</option>';
-            categories.forEach(function(cat) {
-                const selected = (cat.id == categoryId) ? 'selected' : '';
-                categoryOptions += `<option value="${cat.id}" ${selected}>${cat.name}</option>`;
-            });
-            
-            openModal(`
-                <h3 class="font-bold text-lg text-white mb-4">Editar Tarefa</h3>
-                <form id="form-edit-task" class="space-y-4">
-                    <input type="text" id="edit-t-title" placeholder="Título" required
-                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
-                    <textarea id="edit-t-desc" placeholder="Descrição" rows="3"
-                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white"></textarea>
-                    <select id="edit-t-category"
-                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
-                        ${categoryOptions}
-                    </select>
-                    <select id="edit-t-priority"
-                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
-                        <option value="baixa">Baixa</option>
-                        <option value="media">Média</option>
-                        <option value="alta">Alta</option>
-                    </select>
-                    <input type="date" id="edit-t-date" required
-                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white">
-                    <div class="flex justify-end space-x-2 pt-2">
-                        <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-700 rounded-xl text-sm">Cancelar</button>
-                        <button type="submit" class="px-4 py-2 bg-indigo-600 rounded-xl text-white text-sm">Salvar</button>
-                    </div>
-                </form>
-            `);
-            
-            // Set values safely
-            $('#edit-t-title').val(title);
-            $('#edit-t-desc').val(desc);
-            $('#edit-t-priority').val(priority);
-            $('#edit-t-date').val(rawDate);
-            
-            $('#form-edit-task').on('submit', function (e) {
-                e.preventDefault();
-                api.put('/api/tasks/' + id, {
-                    title: $('#edit-t-title').val(),
-                    description: $('#edit-t-desc').val(),
-                    priority: $('#edit-t-priority').val(),
-                    due_date: $('#edit-t-date').val(),
-                    category_id: $('#edit-t-category').val() || null,
-                    status: status
-                })
-                .done(function () {
-                    showToast('Tarefa atualizada!', 'success');
-                    closeModal();
-                    location.reload();
-                })
-                .fail(function () {
-                    showToast('Erro ao atualizar tarefa', 'error');
-                });
-            });
-        });
-    });
-    
-    // Deletar tarefa
-    $(document).on('click', '.btn-delete-task', function () {
-        const id = $(this).data('id');
-        if (!confirm('Excluir esta tarefa?')) return;
-        api.delete(`/api/tasks/${id}`)
-           .done(() => { showToast('Tarefa removida', 'success'); location.reload(); })
-           .fail(() => showToast('Erro ao remover', 'error'));
-    });
+    }
 });
 
-// Funções de filtro para tarefas
+// ---- Filtros ----
 function filterTasks() {
-    const searchTerm = $('#search-tasks').val().toLowerCase();
+    const search     = $('#search-tasks').val().toLowerCase();
     const categoryId = $('#filter-category-task').val();
-    const priority = $('#filter-priority-task').val();
-    
-    $('.task-card').each(function() {
-        const $card = $(this);
-        const title = $card.data('title').toLowerCase();
-        const description = $card.data('description').toLowerCase();
-        const cardCategory = $card.data('category');
-        const cardPriority = $card.data('priority');
-        
+    const priority   = $('#filter-priority-task').val();
+
+    let visibleBySection = {};
+
+    $('.task-row').each(function () {
+        const $r    = $(this);
+        const title = String($r.data('title')).toLowerCase();
+        const desc  = String($r.data('description')).toLowerCase();
+        const cat   = String($r.data('category'));
+        const prio  = $r.data('priority');
+        const sec   = $r.data('status');
+
         let show = true;
-        
-        if (searchTerm && !title.includes(searchTerm) && !description.includes(searchTerm)) {
-            show = false;
-        }
-        
-        if (categoryId && cardCategory != categoryId) {
-            show = false;
-        }
-        
-        if (priority && cardPriority !== priority) {
-            show = false;
-        }
-        
-        show ? $card.show() : $card.hide();
+        if (search     && !title.includes(search) && !desc.includes(search)) show = false;
+        if (categoryId && cat !== categoryId)                                  show = false;
+        if (priority   && prio !== priority)                                   show = false;
+
+        $r.toggle(show);
+        if (!visibleBySection[sec]) visibleBySection[sec] = 0;
+        if (show) visibleBySection[sec]++;
     });
-    
-    // Atualizar contagens das colunas
-    $('.kanban-col').each(function() {
-        const visibleCount = $(this).find('.task-card:visible').length;
-        $(this).closest('.bg-slate-950\\/30').find('.task-count').text(visibleCount);
+
+    // Atualizar contagens das seções
+    $('.task-section').each(function () {
+        const sec   = $(this).data('section');
+        const count = visibleBySection[sec] || 0;
+        $(this).find('.task-section-toggle span:nth-child(3)').text(count);
     });
 }
 
-// Event listeners para filtros
 $('#search-tasks').on('keyup', filterTasks);
-$('#filter-category-task').on('change', function() {
-    const categoryId = $(this).val();
-    if (categoryId) {
-        window.location.href = `/tasks?category_id=${categoryId}`;
-    } else {
-        window.location.href = '/tasks';
-    }
+$('#filter-category-task').on('change', function () {
+    const id = $(this).val();
+    window.location.href = id ? `/tasks?category_id=${id}` : '/tasks';
 });
 $('#filter-priority-task').on('change', filterTasks);

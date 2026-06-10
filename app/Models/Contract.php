@@ -78,6 +78,17 @@ class Contract extends BaseModel
         return $stmt->fetchAll();
     }
     
+    public function findAll(): array
+    {
+        $stmt = $this->db->query("
+            SELECT c.*, cat.name as category_name 
+            FROM contracts c
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            ORDER BY c.id DESC
+        ");
+        return $stmt->fetchAll();
+    }
+
     public function findAllByCategory(?int $categoryId = null): array
     {
         $sql = "

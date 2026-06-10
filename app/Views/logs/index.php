@@ -1,96 +1,111 @@
 <?php $pageScript = 'logs'; ?>
-<div class="p-6">
-    <div class="flex items-center justify-between mb-6">
+
+<!-- Page Header -->
+<div style="padding:28px 28px 0;" class="fade-up">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
         <div>
-            <h2 class="text-2xl font-bold">Logs de Atividades</h2>
-            <p class="text-slate-400 text-sm mt-1">Registros de ações e acessos no sistema.</p>
+            <h1 class="page-title">Logs de Atividades</h1>
+            <p class="page-subtitle">Histórico completo de ações registradas no sistema</p>
         </div>
-        <div class="flex items-center space-x-3">
-            <button id="btn-clear-logs" class="bg-rose-600/10 hover:bg-rose-600 border border-rose-500/20 hover:border-rose-500 text-rose-400 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;">
+                <i data-lucide="zap" style="width:14px;height:14px;color:var(--indigo-light);"></i>
+                <span style="font-size:13px;color:var(--text-muted);">Hoje:</span>
+                <span id="today-actions-count" style="font-size:13px;font-weight:700;color:var(--text-primary);"><?= $todayCount ?></span>
+                <span style="font-size:13px;color:var(--text-muted);">ações</span>
+            </div>
+            <button id="btn-clear-logs" class="btn btn-danger">
+                <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
                 Limpar Logs
             </button>
-            <div class="bg-slate-800/50 border border-slate-700 px-4 py-2 rounded-xl text-sm font-semibold">
-                <span id="today-actions-count" class="text-indigo-400"><?= $todayCount ?></span> ações hoje
-            </div>
         </div>
     </div>
 
-    <!-- Filtros e Busca -->
-    <div class="flex flex-wrap gap-4 mb-6 bg-slate-900/50 p-4 rounded-2xl border border-slate-850">
-        <div class="flex-1 min-w-[200px]">
-            <input type="text" id="search-log" placeholder="Buscar por descrição, IP ou dispositivo..." 
-                   class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+    <!-- Filters -->
+    <div class="filters-bar" style="padding:0;margin-bottom:16px;">
+        <div class="search-wrap">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="search-log" placeholder="Buscar por descrição, IP ou agente..." class="input-field search-input">
         </div>
-        <div class="w-48">
-            <select id="filter-log-type" 
-                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
-                <option value="all">Todos os Tipos</option>
-                <option value="info">Info</option>
-                <option value="warning">Warning</option>
-                <option value="task">Task</option>
-                <option value="navigation">Navigation</option>
-            </select>
-        </div>
+        <select id="filter-log-type" class="select-field">
+            <option value="all">Todos os Tipos</option>
+            <option value="navigation">Navegação</option>
+            <option value="task">Tarefa</option>
+            <option value="contract">Contrato</option>
+            <option value="site">Site</option>
+            <option value="category">Categoria</option>
+            <option value="warning">Warning</option>
+        </select>
     </div>
+</div>
 
-    <!-- Tabela de Logs -->
-    <div class="bg-slate-800/30 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-        <div class="p-4 border-b border-slate-800 bg-slate-900/50">
-            <h3 class="font-bold text-sm text-slate-300">Histórico Recente</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase bg-slate-950/20">
-                        <th class="p-4 w-40">Data / Hora</th>
-                        <th class="p-4 w-32">Tipo</th>
-                        <th class="p-4">Descrição</th>
-                        <th class="p-4 w-36">IP</th>
-                        <th class="p-4 w-64">Dispositivo / Agente</th>
-                    </tr>
-                </thead>
-                <tbody id="logs-table-body" class="divide-y divide-slate-800/50 text-sm">
-                    <?php if (empty($logs)): ?>
-                        <tr id="no-logs-row">
-                            <td colspan="5" class="p-8 text-center text-slate-500">Nenhum log registrado.</td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($logs as $log): ?>
-                            <tr class="hover:bg-slate-800/20 transition-colors log-row"
-                                data-type="<?= htmlspecialchars($log['type']) ?>"
-                                data-desc="<?= htmlspecialchars($log['description']) ?>"
-                                data-ip="<?= htmlspecialchars($log['ip_address'] ?? '127.0.0.1') ?>"
-                                data-ua="<?= htmlspecialchars($log['user_agent'] ?? '') ?>">
-                                <td class="p-4 text-slate-400 font-mono">
-                                    <?= date('d/m/Y H:i:s', strtotime($log['created_at'])) ?>
-                                </td>
-                                <td class="p-4">
-                                    <?php
-                                    $typeClasses = [
-                                        'warning' => 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
-                                        'task' => 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-                                        'navigation' => 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
-                                    ];
-                                    $class = $typeClasses[$log['type']] ?? 'bg-slate-700/50 text-slate-400 border border-slate-700';
-                                    ?>
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider <?= $class ?>">
-                                        <?= htmlspecialchars($log['type']) ?>
-                                    </span>
-                                </td>
-                                <td class="p-4 text-slate-200">
-                                    <?= htmlspecialchars($log['description']) ?>
-                                </td>
-                                <td class="p-4 font-mono text-xs text-slate-400">
-                                    <?= htmlspecialchars($log['ip_address'] ?? '127.0.0.1') ?>
-                                </td>
-                                <td class="p-4 text-xs text-slate-500 truncate max-w-xs" title="<?= htmlspecialchars($log['user_agent'] ?? '') ?>">
-                                    <?= htmlspecialchars($log['user_agent'] ?? 'Desconhecido') ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
+<!-- Logs Table -->
+<div class="data-table-wrap fade-up">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width:150px;">Data / Hora</th>
+                <th style="width:110px;">Tipo</th>
+                <th>Descrição</th>
+                <th style="width:120px;">Endereço IP</th>
+                <th style="width:200px;">Agente</th>
+            </tr>
+        </thead>
+        <tbody id="logs-table-body">
+            <?php if (empty($logs)): ?>
+            <tr id="no-logs-row">
+                <td colspan="5">
+                    <div class="empty-state" style="padding:48px;">
+                        <i data-lucide="inbox" style="width:40px;height:40px;opacity:0.2;"></i>
+                        <p>Nenhum log registrado ainda.</p>
+                    </div>
+                </td>
+            </tr>
+            <?php else: ?>
+            <?php
+            $typeConfig = [
+                'warning'    => ['label' => 'Warning',    'class' => 'badge-red',    'dot' => '#f43f5e'],
+                'task'       => ['label' => 'Tarefa',     'class' => 'badge-green',  'dot' => '#10b981'],
+                'navigation' => ['label' => 'Navegação',  'class' => 'badge-blue',   'dot' => '#0ea5e9'],
+                'contract'   => ['label' => 'Contrato',   'class' => 'badge-yellow', 'dot' => '#f59e0b'],
+                'site'       => ['label' => 'Site',       'class' => 'badge-indigo', 'dot' => '#818cf8'],
+                'category'   => ['label' => 'Categoria',  'class' => 'badge-indigo', 'dot' => '#6366f1'],
+            ];
+            foreach ($logs as $log):
+                $tc = $typeConfig[$log['type']] ?? ['label' => $log['type'], 'class' => 'badge-gray', 'dot' => '#4f4f6a'];
+            ?>
+            <tr class="log-row"
+                data-type="<?= htmlspecialchars($log['type']) ?>"
+                data-desc="<?= htmlspecialchars($log['description']) ?>"
+                data-ip="<?= htmlspecialchars($log['ip_address'] ?? '127.0.0.1') ?>"
+                data-ua="<?= htmlspecialchars($log['user_agent'] ?? '') ?>">
+
+                <td>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <div style="width:6px;height:6px;background:<?= $tc['dot'] ?>;border-radius:50%;flex-shrink:0;"></div>
+                        <span style="font-size:12px;font-family:monospace;color:var(--text-muted);">
+                            <?= date('d/m/Y H:i:s', strtotime($log['created_at'])) ?>
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge <?= $tc['class'] ?>" style="font-size:10px;"><?= $tc['label'] ?></span>
+                </td>
+                <td>
+                    <span style="font-size:13px;"><?= htmlspecialchars($log['description']) ?></span>
+                </td>
+                <td>
+                    <code style="font-size:11px;color:var(--text-muted);font-family:monospace;"><?= htmlspecialchars($log['ip_address'] ?? '127.0.0.1') ?></code>
+                </td>
+                <td>
+                    <span style="font-size:11px;color:var(--text-faint);overflow:hidden;text-overflow:ellipsis;display:block;max-width:200px;white-space:nowrap;"
+                          title="<?= htmlspecialchars($log['user_agent'] ?? '') ?>">
+                        <?= htmlspecialchars($log['user_agent'] ?? 'Desconhecido') ?>
+                    </span>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+            <?php endif; ?>
+        </tbody>
+    </table>
 </div>

@@ -41,6 +41,17 @@ class Site extends BaseModel
         ]);
     }
     
+    public function findAll(): array
+    {
+        $stmt = $this->db->query("
+            SELECT s.*, c.name as category_name 
+            FROM sites s
+            LEFT JOIN categories c ON s.category_id = c.id
+            ORDER BY s.name
+        ");
+        return $stmt->fetchAll();
+    }
+
     public function findAllByCategory(?int $categoryId = null): array
     {
         $sql = "
