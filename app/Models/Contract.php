@@ -4,6 +4,7 @@ namespace App\Models;
 class Contract extends BaseModel
 {
     protected string $table = 'contracts';
+    protected bool $softDeletes = true;
 
     public function create(array $data): int
     {
@@ -45,7 +46,7 @@ class Contract extends BaseModel
 
     public function getTotalValue(?int $categoryId = null): float
     {
-        $sql = "SELECT SUM(value) FROM contracts";
+        $sql = "SELECT SUM(value) FROM contracts WHERE deleted_at IS NULL";
         if ($categoryId) {
             $sql .= " WHERE category_id = :category_id";
             $stmt = $this->db->prepare($sql);
@@ -62,7 +63,8 @@ class Contract extends BaseModel
             SELECT c.*, cat.name as category_name 
             FROM contracts c
             LEFT JOIN categories cat ON c.category_id = cat.id
-            WHERE (end_date BETWEEN CURDATE() AND LAST_DAY(CURDATE())
+            WHERE c.deleted_at IS NULL
+              AND (end_date BETWEEN CURDATE() AND LAST_DAY(CURDATE())
                OR status IN ('em_renovacao','vencido'))
         ";
         
@@ -84,6 +86,7 @@ class Contract extends BaseModel
             SELECT c.*, cat.name as category_name 
             FROM contracts c
             LEFT JOIN categories cat ON c.category_id = cat.id
+            WHERE c.deleted_at IS NULL
             ORDER BY c.id DESC
         ");
         return $stmt->fetchAll();
@@ -95,16 +98,58 @@ class Contract extends BaseModel
             SELECT c.*, cat.name as category_name 
             FROM contracts c
             LEFT JOIN categories cat ON c.category_id = cat.id
+            WHERE c.deleted_at IS NULL
         ";
         
         if ($categoryId) {
-            $sql .= " WHERE c.category_id = :category_id";
+            $sql .= " AND c.category_id = :category_id";
             $stmt = $this->db->prepare($sql . " ORDER BY c.id DESC");
             $stmt->execute(['category_id' => $categoryId]);
         } else {
             $stmt = $this->db->query($sql . " ORDER BY c.id DESC");
         }
         
+        return $stmt->fetchAll();
+    }
+
+    public function countActive(?int $categoryId = null): int
+    {
+        $sql = "SELECT COUNT(*) FROM contracts WHERE status = 'vigente' AND deleted_at IS NULL";
+        if ($categoryId) {
+            $sql .= " AND category_id = :category_id";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute(['category_id' => $categoryId]);
+        } else {
+            $stmt = $this->db->query($sql);
+        }
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function search(string $query, int $limit = 20): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT c.*, cat.name as category_name, 'contract' as result_type
+            FROM contracts c
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            WHERE c.deleted_at IS NULL
+              AND (c.code LIKE :q OR c.partner LIKE :q OR c.object LIKE :q)
+            ORDER BY c.id DESC LIMIT :limit
+        ");
+        $stmt->bindValue('q', "%{$query}%");
+        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function forExport(): array
+    {
+        $stmt = $this->db->query("
+            SELECT c.*, cat.name as category_name
+            FROM contracts c
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            WHERE c.deleted_at IS NULL
+            ORDER BY c.id DESC
+        ");
         return $stmt->fetchAll();
     }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 class Task extends BaseModel
 {
     protected string $table = 'tasks';
+    protected bool $softDeletes = true;
 
     public function create(array $data): int
     {
@@ -58,7 +59,7 @@ class Task extends BaseModel
             SELECT t.*, c.name as category_name 
             FROM tasks t
             LEFT JOIN categories c ON t.category_id = c.id
-            WHERE t.status=:s
+            WHERE t.status=:s AND t.deleted_at IS NULL
         ";
         
         if ($categoryId) {
@@ -75,7 +76,7 @@ class Task extends BaseModel
 
     public function countActive(?int $categoryId = null): int
     {
-        $sql = "SELECT COUNT(*) FROM tasks WHERE status != 'done'";
+        $sql = "SELECT COUNT(*) FROM tasks WHERE status != 'done' AND deleted_at IS NULL";
         if ($categoryId) {
             $sql .= " AND category_id = :category_id";
             $stmt = $this->db->prepare($sql);
@@ -92,16 +93,45 @@ class Task extends BaseModel
             SELECT t.*, c.name as category_name 
             FROM tasks t
             LEFT JOIN categories c ON t.category_id = c.id
+            WHERE t.deleted_at IS NULL
         ";
         
         if ($categoryId) {
-            $sql .= " WHERE t.category_id = :category_id";
+            $sql .= " AND t.category_id = :category_id";
             $stmt = $this->db->prepare($sql . " ORDER BY t.id DESC");
             $stmt->execute(['category_id' => $categoryId]);
         } else {
             $stmt = $this->db->query($sql . " ORDER BY t.id DESC");
         }
         
+        return $stmt->fetchAll();
+    }
+
+    public function search(string $query, int $limit = 20): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT t.*, c.name as category_name, 'task' as result_type
+            FROM tasks t
+            LEFT JOIN categories c ON t.category_id = c.id
+            WHERE t.deleted_at IS NULL
+              AND (t.title LIKE :q OR t.description LIKE :q)
+            ORDER BY t.id DESC LIMIT :limit
+        ");
+        $stmt->bindValue('q', "%{$query}%");
+        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function forExport(): array
+    {
+        $stmt = $this->db->query("
+            SELECT t.*, c.name as category_name
+            FROM tasks t
+            LEFT JOIN categories c ON t.category_id = c.id
+            WHERE t.deleted_at IS NULL
+            ORDER BY t.id DESC
+        ");
         return $stmt->fetchAll();
     }
 }

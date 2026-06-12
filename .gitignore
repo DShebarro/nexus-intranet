@@ -1,27 +1,20 @@
-# Arquivos e diretórios do Composer
+# Dependências
 /vendor/
-composer.lock
-composer.json
 
-# Arquivos de log
-*.log
-nexus-intranet.log
-
-# Arquivos de ambiente
+# Ambiente
 .env
 .env.local
 .env.production
-.env.example
 
-# Arquivos do macOS
-.DS_Store
-
-# Arquivos do PHP
-*.phpinfo
-
-# Arquivos de cache do Laravel
-/storage/framework/cache/
-/storage/framework/sessions/
-/storage/framework/views/
-/storage/debugbar/
+# Logs e cache
+*.log
 /storage/logs/
+/storage/cache/
+/storage/uploads/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# PHP
+*.phpinfo

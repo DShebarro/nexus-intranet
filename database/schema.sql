@@ -130,3 +130,62 @@ INSERT INTO categories (name, type) VALUES
 ('Documentação', 'site'),
 ('Redes Sociais', 'site'),
 ('Governamentais', 'site');
+
+-- ============================================================
+-- Índices de performance
+-- ============================================================
+ALTER TABLE tasks ADD INDEX idx_status (status);
+ALTER TABLE tasks ADD INDEX idx_category_status (category_id, status);
+ALTER TABLE contracts ADD INDEX idx_status (status);
+ALTER TABLE contracts ADD INDEX idx_end_date (end_date);
+ALTER TABLE messages ADD INDEX idx_chat_sent (chat_id, sent_at);
+ALTER TABLE activity_logs ADD INDEX idx_created_at (created_at);
+
+-- ============================================================
+-- Fase 2 — Soft deletes, audit trail, anexos, notificações
+-- ============================================================
+ALTER TABLE tasks ADD COLUMN deleted_at DATETIME NULL DEFAULT NULL;
+ALTER TABLE contracts ADD COLUMN deleted_at DATETIME NULL DEFAULT NULL;
+ALTER TABLE sites ADD COLUMN deleted_at DATETIME NULL DEFAULT NULL;
+
+ALTER TABLE activity_logs
+    ADD COLUMN user_id INT NULL,
+    ADD COLUMN entity_type VARCHAR(50) NULL,
+    ADD COLUMN entity_id INT NULL,
+    ADD COLUMN action VARCHAR(40) NULL,
+    ADD COLUMN old_values JSON NULL,
+    ADD COLUMN new_values JSON NULL,
+    ADD INDEX idx_entity (entity_type, entity_id);
+
+CREATE TABLE IF NOT EXISTS attachments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    entity_type ENUM('task','contract','message') NOT NULL,
+    entity_id INT NOT NULL,
+    user_id INT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    stored_name VARCHAR(255) NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    size_bytes INT NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_entity (entity_type, entity_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    type VARCHAR(40) NOT NULL DEFAULT 'info',
+    title VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    link VARCHAR(255) NULL,
+    read_at DATETIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user_read (user_id, read_at),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS migrations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    migration VARCHAR(255) NOT NULL UNIQUE,
+    executed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;

@@ -24,11 +24,15 @@ window.showToast = function(msg, type = 'info') {
 
 // ---- REST API Helpers ----
 window.api = {
+    _headers: function() {
+        const csrf = document.querySelector('meta[name="csrf-token"]');
+        return csrf ? { 'X-CSRF-Token': csrf.content } : {};
+    },
     get:    (url)       => $.getJSON(url),
-    post:   (url, data) => $.ajax({ url, method: 'POST',   contentType: 'application/json', data: JSON.stringify(data) }),
-    put:    (url, data) => $.ajax({ url, method: 'PUT',    contentType: 'application/json', data: JSON.stringify(data) }),
-    patch:  (url, data) => $.ajax({ url, method: 'PATCH',  contentType: 'application/json', data: JSON.stringify(data) }),
-    delete: (url)       => $.ajax({ url, method: 'DELETE' }),
+    post:   (url, data) => $.ajax({ url, method: 'POST',   contentType: 'application/json', headers: api._headers(), data: JSON.stringify(data) }),
+    put:    (url, data) => $.ajax({ url, method: 'PUT',    contentType: 'application/json', headers: api._headers(), data: JSON.stringify(data) }),
+    patch:  (url, data) => $.ajax({ url, method: 'PATCH',  contentType: 'application/json', headers: api._headers(), data: JSON.stringify(data) }),
+    delete: (url)       => $.ajax({ url, method: 'DELETE', headers: api._headers() }),
 };
 
 // ---- Modal ----

@@ -3,6 +3,8 @@ namespace App\Core;
 
 class Request
 {
+    private ?array $jsonBody = null;
+
     public function method(): string
     {
         return $_SERVER['REQUEST_METHOD'] ?? 'GET';
@@ -26,12 +28,21 @@ class Request
 
     public function json(): array
     {
-        $body = file_get_contents('php://input');
-        return json_decode($body, true) ?? [];
+        if ($this->jsonBody === null) {
+            $body = file_get_contents('php://input');
+            $this->jsonBody = json_decode($body, true) ?? [];
+        }
+        return $this->jsonBody;
     }
 
     public function isAjax(): bool
     {
         return ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest';
+    }
+
+    public function header(string $name): ?string
+    {
+        $key = 'HTTP_' . strtoupper(str_replace('-', '_', $name));
+        return $_SERVER[$key] ?? null;
     }
 }

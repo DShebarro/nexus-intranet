@@ -8,6 +8,10 @@
             <p class="page-subtitle">Histórico completo de ações registradas no sistema</p>
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
+            <a href="/api/export/logs" class="btn btn-secondary" title="Exportar CSV">
+                <i data-lucide="download" style="width:14px;height:14px;"></i>
+                Exportar CSV
+            </a>
             <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;">
                 <i data-lucide="zap" style="width:14px;height:14px;color:var(--indigo-light);"></i>
                 <span style="font-size:13px;color:var(--text-muted);">Hoje:</span>
@@ -45,16 +49,17 @@
         <thead>
             <tr>
                 <th style="width:150px;">Data / Hora</th>
+                <th style="width:90px;">Ação</th>
                 <th style="width:110px;">Tipo</th>
+                <th style="width:100px;">Usuário</th>
                 <th>Descrição</th>
                 <th style="width:120px;">Endereço IP</th>
-                <th style="width:200px;">Agente</th>
             </tr>
         </thead>
         <tbody id="logs-table-body">
             <?php if (empty($logs)): ?>
             <tr id="no-logs-row">
-                <td colspan="5">
+                <td colspan="6">
                     <div class="empty-state" style="padding:48px;">
                         <i data-lucide="inbox" style="width:40px;height:40px;opacity:0.2;"></i>
                         <p>Nenhum log registrado ainda.</p>
@@ -89,19 +94,22 @@
                     </div>
                 </td>
                 <td>
+                    <span style="font-size:11px;color:var(--text-muted);"><?= e($log['action'] ?? '—') ?></span>
+                </td>
+                <td>
                     <span class="badge <?= $tc['class'] ?>" style="font-size:10px;"><?= $tc['label'] ?></span>
                 </td>
                 <td>
-                    <span style="font-size:13px;"><?= htmlspecialchars($log['description']) ?></span>
+                    <span style="font-size:12px;"><?= e($log['user_name'] ?? '—') ?></span>
                 </td>
                 <td>
-                    <code style="font-size:11px;color:var(--text-muted);font-family:monospace;"><?= htmlspecialchars($log['ip_address'] ?? '127.0.0.1') ?></code>
+                    <span style="font-size:13px;"><?= e($log['description']) ?></span>
+                    <?php if (!empty($log['entity_type'])): ?>
+                    <span style="font-size:10px;color:var(--text-faint);margin-left:6px;">(<?= e($log['entity_type']) ?>#<?= (int)($log['entity_id'] ?? 0) ?>)</span>
+                    <?php endif; ?>
                 </td>
                 <td>
-                    <span style="font-size:11px;color:var(--text-faint);overflow:hidden;text-overflow:ellipsis;display:block;max-width:200px;white-space:nowrap;"
-                          title="<?= htmlspecialchars($log['user_agent'] ?? '') ?>">
-                        <?= htmlspecialchars($log['user_agent'] ?? 'Desconhecido') ?>
-                    </span>
+                    <code style="font-size:11px;color:var(--text-muted);font-family:monospace;"><?= e($log['ip_address'] ?? '127.0.0.1') ?></code>
                 </td>
             </tr>
             <?php endforeach; ?>

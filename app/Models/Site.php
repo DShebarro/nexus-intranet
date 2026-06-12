@@ -4,6 +4,7 @@ namespace App\Models;
 class Site extends BaseModel
 {
     protected string $table = 'sites';
+    protected bool $softDeletes = true;
     
     public function create(array $data): int
     {
@@ -47,6 +48,7 @@ class Site extends BaseModel
             SELECT s.*, c.name as category_name 
             FROM sites s
             LEFT JOIN categories c ON s.category_id = c.id
+            WHERE s.deleted_at IS NULL
             ORDER BY s.name
         ");
         return $stmt->fetchAll();
@@ -58,16 +60,48 @@ class Site extends BaseModel
             SELECT s.*, c.name as category_name 
             FROM sites s
             LEFT JOIN categories c ON s.category_id = c.id
+            WHERE s.deleted_at IS NULL
         ";
         
         if ($categoryId) {
-            $sql .= " WHERE s.category_id = :category_id";
+            $sql .= " AND s.category_id = :category_id";
             $stmt = $this->db->prepare($sql . " ORDER BY s.name");
             $stmt->execute(['category_id' => $categoryId]);
         } else {
             $stmt = $this->db->query($sql . " ORDER BY s.name");
         }
         
+        return $stmt->fetchAll();
+    }
+
+    public function countByStatus(string $status, ?int $categoryId = null): int
+    {
+        $sql = "SELECT COUNT(*) FROM sites WHERE status = :status AND deleted_at IS NULL";
+        $params = ['status' => $status];
+
+        if ($categoryId) {
+            $sql .= " AND category_id = :category_id";
+            $params['category_id'] = $categoryId;
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function search(string $query, int $limit = 20): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT s.*, c.name as category_name, 'site' as result_type
+            FROM sites s
+            LEFT JOIN categories c ON s.category_id = c.id
+            WHERE s.deleted_at IS NULL
+              AND (s.name LIKE :q OR s.url LIKE :q OR s.description LIKE :q)
+            ORDER BY s.name LIMIT :limit
+        ");
+        $stmt->bindValue('q', "%{$query}%");
+        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
         return $stmt->fetchAll();
     }
 }

@@ -1,8 +1,8 @@
 <?php
 namespace App\Controllers;
 
-use App\Core\Request;
-use App\Core\Database;
+use App\Core\{Auth, AIService, Request, Database};
+use App\Exceptions\NotFoundException;
 use PDO;
 
 class ChatController extends BaseController
@@ -11,12 +11,12 @@ class ChatController extends BaseController
 
     public function __construct()
     {
+        parent::__construct();
         $this->db = Database::getInstance();
     }
 
     public function index(Request $req): void
     {
-        // Garante que o canal Nexus AI e Geral existem no banco
         $this->ensureChatExists('nexus-ai', 'Nexus AI', 'ai');
         $this->ensureChatExists('geral', 'Canal Geral', 'channel');
 
@@ -30,16 +30,31 @@ class ChatController extends BaseController
     public function getMessages(Request $req, array $params): void
     {
         $slug = $params['slug'] ?? '';
-        
-        $stmt = $this->db->prepare("
-            SELECT m.* FROM messages m 
-            JOIN chats c ON m.chat_id = c.id
-            WHERE c.slug = :slug 
-            ORDER BY m.sent_at ASC
-        ");
-        $stmt->execute(['slug' => $slug]);
-        $messages = $stmt->fetchAll();
+        $limit = min(100, max(1, (int) $req->get('limit', 50)));
+        $before = $req->get('before');
 
+        $sql = "
+            SELECT m.* FROM messages m
+            JOIN chats c ON m.chat_id = c.id
+            WHERE c.slug = :slug
+        ";
+        $queryParams = ['slug' => $slug];
+
+        if ($before) {
+            $sql .= " AND m.id < :before";
+            $queryParams['before'] = (int) $before;
+        }
+
+        $sql .= " ORDER BY m.sent_at DESC LIMIT :limit";
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($queryParams as $key => $val) {
+            $stmt->bindValue($key, $val);
+        }
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $messages = array_reverse($stmt->fetchAll());
         $this->json($messages);
     }
 
@@ -47,47 +62,63 @@ class ChatController extends BaseController
     {
         $slug = $params['slug'] ?? '';
         $data = $req->json();
-        
-        $content = trim($data['content'] ?? '');
-        if ($content === '') {
-            $this->json(['error' => 'Mensagem vazia'], 400);
+
+        $errors = \App\Core\Validator::validate($data, [
+            'content' => 'required|string|max:5000',
+        ]);
+
+        if ($errors) {
+            $this->json(['error' => reset($errors)[0]], 422);
             return;
         }
 
-        // Buscar chat
+        $content = trim($data['content']);
+
         $stmt = $this->db->prepare("SELECT * FROM chats WHERE slug = :slug");
         $stmt->execute(['slug' => $slug]);
         $chat = $stmt->fetch();
 
         if (!$chat) {
-            $this->json(['error' => 'Chat não encontrado'], 404);
-            return;
+            throw new NotFoundException('Chat não encontrado.');
         }
 
-        // Salvar mensagem do usuário
+        $user = Auth::user();
+        $senderName = $user['name'] ?? 'Usuário';
+
         $stmt = $this->db->prepare("
             INSERT INTO messages (chat_id, sender_name, sender_type, content)
             VALUES (:chat_id, :sender_name, 'user', :content)
         ");
         $stmt->execute([
             'chat_id'     => $chat['id'],
-            'sender_name' => 'Carlos Silva',
+            'sender_name' => $senderName,
             'content'     => $content,
         ]);
 
         $msgId = $this->db->lastInsertId();
 
-        // Se for chat com a IA (Nexus AI), gerar resposta automática
         if ($chat['type'] === 'ai') {
-            $aiResponse = $this->generateAIResponse($content);
+            $aiResponse = AIService::respond($content, $senderName);
             $stmt = $this->db->prepare("
                 INSERT INTO messages (chat_id, sender_name, sender_type, content)
                 VALUES (:chat_id, 'Nexus AI', 'ai', :content)
             ");
             $stmt->execute([
-                'chat_id'     => $chat['id'],
-                'content'     => $aiResponse,
+                'chat_id' => $chat['id'],
+                'content' => $aiResponse,
             ]);
+        }
+
+        if ($chat['type'] === 'channel' && $slug === 'geral') {
+            (new \App\Core\NotificationService(
+                new \App\Models\Notification(),
+                new \App\Models\User()
+            ))->notifyAllUsers(
+                'chat',
+                "Nova mensagem no {$chat['title']}",
+                "{$senderName}: " . mb_substr($content, 0, 80),
+                '/chat'
+            );
         }
 
         $this->json(['success' => true, 'message_id' => $msgId]);
@@ -101,28 +132,5 @@ class ChatController extends BaseController
             $stmt = $this->db->prepare("INSERT INTO chats (slug, title, type) VALUES (:slug, :title, :type)");
             $stmt->execute(['slug' => $slug, 'title' => $title, 'type' => $type]);
         }
-    }
-
-    private function generateAIResponse(string $userMessage): string
-    {
-        $msg = strtolower($userMessage);
-
-        if (str_contains($msg, 'olá') || str_contains($msg, 'oi') || str_contains($msg, 'bom dia') || str_contains($msg, 'boa tarde')) {
-            return "Olá Carlos! Eu sou o assistente virtual da Nexus Intranet. Como posso ajudar você hoje?";
-        }
-        if (str_contains($msg, 'contrato')) {
-            return "Atualmente temos 4 contratos ativos cadastrados no banco de dados, totalizando mais de R$ 61.000,00 em valor acumulado. Você pode visualizar todos eles acessando a aba 'Contratos' no menu lateral.";
-        }
-        if (str_contains($msg, 'tarefa') || str_contains($msg, 'kanban')) {
-            return "No nosso Gerenciador de Tarefas Kanban, você pode criar novas tarefas, arrastá-las entre as colunas ('A Fazer', 'Em Andamento', 'Revisão', 'Concluído') e excluí-las quando necessário. Seus dados são atualizados em tempo real no banco.";
-        }
-        if (str_contains($msg, 'site') || str_contains($msg, 'link') || str_contains($msg, 'sistema')) {
-            return "Temos 5 links/sistemas corporativos configurados na aba 'Sites'. Lá você encontra atalhos rápidos tanto para sistemas internos quanto para portais externos importantes.";
-        }
-        if (str_contains($msg, 'ajuda') || str_contains($msg, 'suporte')) {
-            return "Você pode me perguntar sobre os Contratos, sobre as Tarefas Kanban, ou sobre os Sites corporativos. Se precisar de suporte técnico da TI, fique à vontade para entrar em contato com o ramal 4002.";
-        }
-
-        return "Entendi! Como assistente integrado da Nexus Intranet, eu posso ajudar você a monitorar contratos, tarefas e sites internos do nosso departamento. Se precisar de alguma informação específica sobre essas áreas, basta me perguntar!";
     }
 }

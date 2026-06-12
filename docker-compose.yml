@@ -1,0 +1,35 @@
+services:
+  app:
+    image: php:8.2-apache
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_NAME: nexus_intranet
+      DB_USER: nexus
+      DB_PASSWORD: nexus_secret
+    command: >
+      bash -c "docker-php-ext-install pdo pdo_mysql
+      && sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+      && a2enmod rewrite
+      && apache2-foreground"
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: nexus_intranet
+      MYSQL_USER: nexus
+      MYSQL_PASSWORD: nexus_secret
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+volumes:
+  db_data:

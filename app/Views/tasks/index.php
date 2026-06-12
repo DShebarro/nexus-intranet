@@ -32,6 +32,10 @@
                 <i data-lucide="folder-plus" style="width:14px;height:14px;"></i>
                 Nova Pasta
             </button>
+            <a href="/api/export/tasks" class="btn btn-secondary" title="Exportar CSV">
+                <i data-lucide="download" style="width:14px;height:14px;"></i>
+                CSV
+            </a>
             <button id="btn-new-task" class="btn btn-primary">
                 <i data-lucide="plus" style="width:14px;height:14px;"></i>
                 Nova Tarefa

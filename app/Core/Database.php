@@ -3,6 +3,7 @@ namespace App\Core;
 
 use PDO;
 use PDOException;
+use App\Core\Logger;
 
 class Database
 {
@@ -23,8 +24,8 @@ class Database
                     PDO::ATTR_EMULATE_PREPARES   => false,
                 ]);
             } catch (PDOException $e) {
-                http_response_code(500);
-                die(json_encode(['error' => 'Falha na conexão com o banco de dados.']));
+                Logger::error('Falha na conexão com o banco de dados', ['message' => $e->getMessage()]);
+                throw new \RuntimeException('Falha na conexão com o banco de dados.');
             }
         }
 

@@ -97,7 +97,7 @@
                 <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);transition:var(--transition);" onmouseover="this.style.background='var(--bg-elevated)'" onmouseout="this.style.background='transparent'">
                     <div style="width:7px;height:7px;background:<?= $dotColor ?>;border-radius:50%;margin-top:5px;flex-shrink:0;"></div>
                     <div style="flex:1;min-width:0;">
-                        <p style="font-size:13px;color:var(--text-primary);line-height:1.4;"><?= htmlspecialchars($log['description']) ?></p>
+                        <p style="font-size:13px;color:var(--text-primary);line-height:1.4;"><?= e($log['description']) ?></p>
                         <p style="font-size:11px;color:var(--text-faint);margin-top:2px;"><?= date('d/m H:i', strtotime($log['created_at'])) ?></p>
                     </div>
                 </div>

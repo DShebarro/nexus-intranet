@@ -17,6 +17,7 @@
 
 <script src="/assets/js/app.js"></script>
 <script src="/assets/js/categories.js"></script>
+<script src="/assets/js/notifications.js"></script>
 <?php if (isset($pageScript)): ?>
     <script src="/assets/js/<?= $pageScript ?>.js"></script>
 <?php endif; ?>
